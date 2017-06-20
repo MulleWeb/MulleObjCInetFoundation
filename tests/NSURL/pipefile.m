@@ -7,7 +7,7 @@
 //
 
 
-#import <MulleObjCFoundation/MulleObjCFoundation.h>
+#import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
 //#import "MulleStandaloneObjCFoundation.h"
 
 char  *safe_string( char *s)

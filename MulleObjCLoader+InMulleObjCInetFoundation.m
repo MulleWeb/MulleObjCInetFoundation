@@ -6,19 +6,18 @@
 //
 //
 
-#import "MulleObjCLoader+InetFoundation.h"
+#import "MulleObjCLoader+MulleObjCInetFoundation.h"
 
-@implementation MulleObjCLoader( InetFoundation)
+
+@implementation MulleObjCLoader( MulleObjCInetFoundation)
 
 + (struct _mulle_objc_dependency *) dependencies
 {
    static struct _mulle_objc_dependency   dependencies[] =
    {
-      { @selector( MulleObjCLoader), @selector( Foundation) },
 
-      { @selector( NSHost), MULLE_OBJC_NO_CATEGORYID },
-      { @selector( NSURL), MULLE_OBJC_NO_CATEGORYID },
-      { @selector( NSString), @selector( NSHost) },
+#include "dependencies.inc"
+
       { MULLE_OBJC_NO_CLASSID, MULLE_OBJC_NO_CATEGORYID }
    };
 

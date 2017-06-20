@@ -1,1 +1,1 @@
-${MULLE_FOUNDATION_REPOSITORIES:-https://github.com/mulle-nat}/MulleObjCFoundation;;${MULLE_OBJC_FOUNDATION_BRANCH:-master}
+${MULLE_FOUNDATION_REPOSITORIES:-https://github.com/mulle-nat}/MulleObjCStandardFoundation;;${MULLE_OBJC_STANDARD_FOUNDATION_BRANCH:-release}

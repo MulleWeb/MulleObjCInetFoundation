@@ -8,6 +8,6 @@
 
 #import "MulleObjCLoader.h"
 
-@interface MulleObjCLoader (InetFoundation)
 
+@interface MulleObjCLoader( MulleObjCInetFoundation)
 @end

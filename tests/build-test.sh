@@ -1,8 +1,6 @@
 #! /usr/bin/env bash
 
-PROJECTDIR="`dirname "$PWD"`"
-PROJECTNAME="`basename "${PROJECTDIR}"`"
-LIBRARY_SHORTNAME="MulleObjCRegex"
+LIBRARY_SHORTNAME="MulleObjCInetFoundation"
 
 . "mulle-tests/test-m-common.sh"
 . "mulle-tests/test-tools-common.sh"
