@@ -52,7 +52,7 @@ message( STATUS "OBJC_DEPENDENCY_NAMES is ${OBJC_DEPENDENCY_NAMES}")
 # runs in build dir
 add_custom_command( TARGET MulleObjCInetFoundationStandalone
    POST_BUILD
-   COMMAND ${DEPENDENCIES_DIR}/bin/mulle-objc-make-dependencies-inc -v -o ${CMAKE_SOURCE_DIR}/src/dependencies.inc MulleObjCInetFoundation ${OBJC_DEPENDENCY_NAMES}
+   COMMAND ${DEPENDENCIES_DIR}/bin/mulle-objc-create-dependencies-inc -v -o ${CMAKE_SOURCE_DIR}/src/dependencies.inc MulleObjCInetFoundation ${OBJC_DEPENDENCY_NAMES}
 )
 
 set( PUBLIC_HEADERS
