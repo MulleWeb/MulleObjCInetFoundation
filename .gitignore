@@ -38,3 +38,5 @@ bin/tap-info.sh
 tap-info.sh
 tests/include/
 tests/lib/
+/.bootstrap.repos
+/stashes
