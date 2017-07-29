@@ -40,11 +40,24 @@ ${PUBLIC_HEADERS}
 
 add_dependencies( MulleObjCInetFoundationStandalone MulleObjCInetFoundation)
 
+set( TARGET_ALL_LOAD_LIBRARIES
+$<TARGET_FILE:MulleObjCInetFoundation>
+${OBJC_DEPENDENCY_LIBRARIES}
+${C_DEPENDENCY_LIBRARIES}
+)
+
+if( FORCE_LOAD)
+   set( TMP)
+   foreach( library ${TARGET_ALL_LOAD_LIBRARIES})
+      list( APPEND TMP "${FORCE_LOAD} ${library}")
+   endforeach( library)
+   set( TARGET_ALL_LOAD_LIBRARIES ${TMP})
+endif()
+
+
 target_link_libraries( MulleObjCInetFoundationStandalone
 ${BEGIN_ALL_LOAD}
-MulleObjCInetFoundation
-${C_DEPENDENCY_LIBRARIES}
-${OBJC_DEPENDENCY_LIBRARIES}
+${TARGET_ALL_LOAD_LIBRARIES}
 ${END_ALL_LOAD}
 ${OS_SPECIFIC_LIBRARIES}
 )
