@@ -15,8 +15,10 @@ else()
   include( Release)
 endif()
 
-include( CMakeSourcesAndHeaders.txt)
+set( MULLE_OBJC_INET_FOUNDATION_LIBRARY ON)
 include( CMakeDependencies.txt)
+
+include( CMakeSourcesAndHeaders.txt)
 
 
 add_library( MulleObjCInetFoundation STATIC
