@@ -16,59 +16,12 @@ else()
 endif()
 
 set( MULLE_OBJC_INET_FOUNDATION_LIBRARY ON)
-include( CMakeDependencies.txt)
 
+include( CMakeDependencies.txt)
 include( CMakeSourcesAndHeaders.txt)
 
+include_directories( ${INCLUDE_DIRS})
 
-add_library( MulleObjCInetFoundation STATIC
-${SOURCES}
-${PUBLIC_HEADERS}
-${PRIVATE_HEADERS}
-CMakeDependencies.txt
-CMakeSourcesAndHeaders.txt
-)
-
-target_link_libraries( MulleObjCInetFoundation
-)
-
-
-add_library( MulleObjCInetFoundationStandalone SHARED
-src/MulleObjCInetFoundationStandalone.m
-${PUBLIC_HEADERS}
-)
-
-add_dependencies( MulleObjCInetFoundationStandalone MulleObjCInetFoundation)
-
-set( TARGET_ALL_LOAD_LIBRARIES
-$<TARGET_FILE:MulleObjCInetFoundation>
-${OBJC_DEPENDENCY_LIBRARIES}
-${C_DEPENDENCY_LIBRARIES}
-)
-
-if( FORCE_LOAD)
-   set( TMP)
-   foreach( library ${TARGET_ALL_LOAD_LIBRARIES})
-      list( APPEND TMP "${FORCE_LOAD} ${library}")
-   endforeach( library)
-   set( TARGET_ALL_LOAD_LIBRARIES ${TMP})
-endif()
-
-
-target_link_libraries( MulleObjCInetFoundationStandalone
-${BEGIN_ALL_LOAD}
-${TARGET_ALL_LOAD_LIBRARIES}
-${END_ALL_LOAD}
-${OS_SPECIFIC_LIBRARIES}
-)
-
-message( STATUS "OBJC_DEPENDENCY_NAMES is ${OBJC_DEPENDENCY_NAMES}")
-
-# runs in build dir
-add_custom_command( TARGET MulleObjCInetFoundationStandalone
-   POST_BUILD
-   COMMAND ${DEPENDENCIES_DIR}/bin/mulle-objc-create-dependencies-inc -v -o ${CMAKE_SOURCE_DIR}/src/dependencies.inc MulleObjCInetFoundation ${OBJC_DEPENDENCY_NAMES}
-)
 
 set( PUBLIC_HEADERS
 ${PUBLIC_HEADERS}
@@ -76,6 +29,26 @@ ${PUBLIC_HEADERS}
 "src/dependencies.inc"
 )
 
+add_library( MulleObjCInetFoundation STATIC
+${SOURCES}
+${PUBLIC_HEADERS}
+${PRIVATE_HEADERS}
+CMakeSourcesAndHeaders.txt
+)
+
+set( STANDALONE_BASE_NAME "MulleObjCInetFoundation")
+set( STANDALONE_NAME "MulleObjCInetFoundationStandalone")
+set( STANDALONE_DEFINITIONS ${MULLE_OBJC_INET_FOUNDATION_DEFINITIONS})
+set( STANDALONE_ALL_LOAD_LIBRARIES
+    $<TARGET_FILE:${STANDALONE_BASE_NAME}>
+    ${OBJC_DEPENDENCY_LIBRARIES}
+    ${OBJC_STARTUP_LIBRARY}
+    ${C_DEPENDENCY_LIBRARIES}
+)
+include( Standalone)
+
 install( TARGETS MulleObjCInetFoundation MulleObjCInetFoundationStandalone DESTINATION "lib")
 install( FILES ${PUBLIC_HEADERS} DESTINATION "include/MulleObjCInetFoundation")
 install( FILES ${PRIVATE_HEADERS} DESTINATION "include/MulleObjCInetFoundation/private")
+
+include( MulleTest)
