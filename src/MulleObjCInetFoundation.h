@@ -7,7 +7,7 @@
 //
 #import <MulleObjCStandardFoundation/MulleObjCStandardFoundation.h>
 
-#define MULLE_OBJC_INET_FOUNDATION_VERSION  MULLE_OBJC_FOUNDATION_VERSION
+#define MULLE_OBJC_INET_FOUNDATION_VERSION  MULLE_OBJC_STANDARD_FOUNDATION_VERSION
 
 #import "NSURL.h"
 #import "NSHost.h"
