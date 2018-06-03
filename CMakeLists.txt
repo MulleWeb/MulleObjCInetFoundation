@@ -1,54 +1,127 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required( VERSION 3.1)
 
 project( MulleObjCInetFoundation C)
 
 
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)
-message( STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
-message( STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+### mulle-sde environment
 
-set( MULLE_LANGUAGE "ObjC")
+# add cmake module paths to search path
+list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/share")
+list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake")
 
-if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  include( Debug)
-else()
-  include( Release)
-endif()
+include( Environment)
+
+
+### Files
+
+include( PreFiles OPTIONAL)
 
 set( MULLE_OBJC_INET_FOUNDATION_LIBRARY ON)
 
-include( CMakeDependencies.txt)
-include( CMakeSourcesAndHeaders.txt)
+#
+# Include all non underscored .cmake files in ./cmake
+#
+file( GLOB LOCAL_CMAKE_INCLUDES
+   "cmake/[A-Za-z0-9]*.cmake"
+)
+
+foreach( FILE ${LOCAL_CMAKE_INCLUDES} )
+   include( "${FILE}")
+endforeach()
+
 
 include_directories( ${INCLUDE_DIRS})
 
+include( PostFiles OPTIONAL)
 
-set( PUBLIC_HEADERS
-${PUBLIC_HEADERS}
-"CMakeDependencies.txt"
-"src/dependencies.inc"
+set( PROJECT_FILES
+   ${PROJECT_FILES}
+   ${SOURCES}
+   ${PUBLIC_HEADERS}
+   ${PRIVATE_HEADERS}
+   ${CMAKE_EDITABLE_FILES}
 )
 
-add_library( MulleObjCInetFoundation STATIC
-${SOURCES}
-${PUBLIC_HEADERS}
-${PRIVATE_HEADERS}
-CMakeSourcesAndHeaders.txt
+### Library
+
+include( PreLibrary OPTIONAL)
+
+# ##################################
+# Mainly of interest for Objective-C
+# ##################################
+# Libraries are built in two stages:
+#
+# In the first step the PROJECT_FILES are compiled.
+# In the second step STAGE2_SOURCES are added.
+# This allows PostLibrary to run an analysis step over PROJECT_FILES and
+# generate files to be included by STAGE2_SOURCES. If there are no
+# STAGE2_SOURCES then this is just a more verbose way of doing it.
+# OBJC_LOADER_INC is the generated analysis step.
+#
+#
+add_library( "_1_MulleObjCInetFoundation" OBJECT
+   ${PROJECT_FILES}
 )
 
-set( STANDALONE_BASE_NAME "MulleObjCInetFoundation")
-set( STANDALONE_NAME "MulleObjCInetFoundationStandalone")
-set( STANDALONE_DEFINITIONS ${MULLE_OBJC_INET_FOUNDATION_DEFINITIONS})
-set( STANDALONE_ALL_LOAD_LIBRARIES
-    $<TARGET_FILE:${STANDALONE_BASE_NAME}>
-    ${OBJC_DEPENDENCY_LIBRARIES}
-    ${OBJC_STARTUP_LIBRARY}
-    ${C_DEPENDENCY_LIBRARIES}
+set( ALL_OBJECT_FILES
+   $<TARGET_OBJECTS:_1_MulleObjCInetFoundation>
 )
-include( Standalone)
 
-install( TARGETS MulleObjCInetFoundation MulleObjCInetFoundationStandalone DESTINATION "lib")
-install( FILES ${PUBLIC_HEADERS} DESTINATION "include/MulleObjCInetFoundation")
+set_property( TARGET "_1_MulleObjCInetFoundation" PROPERTY CXX_STANDARD 11)
+
+if( STAGE2_SOURCES)
+   add_library( "_2_MulleObjCInetFoundation" OBJECT
+      ${STAGE2_SOURCES}
+      ${STAGE2_HEADERS}
+   )
+   set( ALL_OBJECT_FILES
+      ${ALL_OBJECT_FILES}
+      $<TARGET_OBJECTS:_2_MulleObjCInetFoundation>
+   )
+   set_property( TARGET "_2_MulleObjCInetFoundation" PROPERTY CXX_STANDARD 11)
+else()
+   if( STAGE2_HEADERS)
+      message( FATAL_ERROR "No STAGE2_SOURCES found but STAGE2_HEADERS exist")
+   endif()
+endif()
+
+
+add_library( "MulleObjCInetFoundation"
+   ${ALL_OBJECT_FILES}
+)
+
+
+set( INSTALL_LIBRARY_TARGETS "MulleObjCInetFoundation")
+
+include( PostLibrary OPTIONAL)
+
+
+#
+# defined by cmake -DBUILD_SHARED_LIBS=ON
+#
+if( BUILD_SHARED_LIBS)
+   set( SHARED_LIBRARY_LIST
+      ${DEPENDENCY_LIBRARIES}
+      ${OPTIONAL_DEPENDENCY_LIBRARIES}
+      ${OS_SPECIFIC_LIBRARIES}
+   )
+
+   include( PostSharedLibrary OPTIONAL) # additional hook
+
+   target_link_libraries( MulleObjCInetFoundation
+      ${SHARED_LIBRARY_LIST}
+   )
+endif()
+
+
+### Install
+
+include( PreInstall OPTIONAL)
+
+install( TARGETS ${INSTALL_LIBRARY_TARGETS} DESTINATION "lib")
+install( FILES ${PUBLIC_HEADERS}  DESTINATION "include/MulleObjCInetFoundation")
 install( FILES ${PRIVATE_HEADERS} DESTINATION "include/MulleObjCInetFoundation/private")
 
-include( MulleTest)
+install( FILES ${CMAKE_INCLUDES}  DESTINATION "include/MulleObjCInetFoundation/cmake")
+
+include( PostInstall OPTIONAL)
