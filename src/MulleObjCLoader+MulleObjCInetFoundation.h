@@ -6,7 +6,7 @@
 //
 //
 
-#import <MulleObjCStandardFoundation/MulleObjCStandardFoundation.h>
+#import "import.h"
 
 
 @interface MulleObjCLoader( MulleObjCInetFoundation)
