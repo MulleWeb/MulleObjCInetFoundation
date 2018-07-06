@@ -91,10 +91,12 @@ add_library( "MulleObjCInetFoundation"
 )
 
 
-set( INSTALL_LIBRARY_TARGETS "MulleObjCInetFoundation")
+include( Library OPTIONAL)
 
-include( PostLibrary OPTIONAL)
-
+set( INSTALL_LIBRARY_TARGETS
+   "MulleObjCInetFoundation"
+   ${INSTALL_LIBRARY_TARGETS}
+)
 
 #
 # defined by cmake -DBUILD_SHARED_LIBS=ON
@@ -113,6 +115,7 @@ if( BUILD_SHARED_LIBS)
    )
 endif()
 
+include( PostLibrary OPTIONAL)
 
 ### Install
 

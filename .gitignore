@@ -5,13 +5,15 @@ build/
 old/
 xcuserdata/
 project.xcworkspace/
+
 *~.*
-.DS_Store
 tmp/
 *.dSYM/
 *.exe
 *.bak
 
+
+test/
 
 build-*.d/
 
