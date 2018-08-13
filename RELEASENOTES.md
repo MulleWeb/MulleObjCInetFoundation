@@ -1,3 +1,7 @@
+### 0.13.2
+
+* fixed and improved objc-loader.inc
+
 ### 0.13.1
 
 * fix for mingw
