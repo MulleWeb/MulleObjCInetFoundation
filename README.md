@@ -1,17 +1,23 @@
 # MulleObjCInetFoundation
 
-This is a [mulle-sde](https://mulle-sde.github.io/) project.
+📠 Internet-related classes like NSHost and NSURL
 
-It has it's own virtual environment, that will be automatically setup for you
-once you enter it with:
+Adds **NSURL** and **NSHost** classes.
 
-```
-mulle-sde MulleObjCInetFoundation
-```
 
-Now you can let **mulle-sde** fetch the required dependencies and build the 
-project for you:
+Build Status | Release Version
+-------------|-----------------------------------
+[![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleFoundation/MulleObjCInetFoundation.svg) [![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation)
 
-```
-mulle-sde craft
-```
+
+## Install
+
+See [foundation-developer](//github.com//foundation-developer) for
+installation instructions.
+
+
+## Author
+
+[Nat!](//www.mulle-kybernetik.com/weblog) for
+[Mulle kybernetiK](//www.mulle-kybernetik.com) and
+[Codeon GmbH](//www.codeon.de)

@@ -7,7 +7,7 @@ endif()
 
 set( INCLUDE_DIRS
 src
-) 
+)
 
 set( PRIVATE_HEADERS
 src/import-private.h
@@ -22,5 +22,5 @@ src/NSURL.h
 src/http_parser.h
 src/import.h
 src/include.h
-) 
+)
 
