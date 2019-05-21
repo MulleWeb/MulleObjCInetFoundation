@@ -24,6 +24,11 @@
 @property( nonatomic, readonly) BOOL  _IP6;
 @property( nonatomic, readonly) BOOL  _isCurrentHost;
 
+- (id) initWithNames:(NSString **) names
+               count:(NSUInteger) count
+           addresses:(NSString **) addresses
+               count:(NSUInteger) nAddresses;
+
 + (instancetype) hostWithName:(NSString *) name;
 + (instancetype) hostWithAddress:(NSString *) address;
 
