@@ -49,7 +49,6 @@ static NSString  *NSURLPathExtensionSeparator = @".";
 
 @implementation NSURL
 
-
 + (instancetype) URLWithString:(NSString *) s
 {
    return( [[[self alloc] initWithString:s] autorelease]);
@@ -79,7 +78,7 @@ static NSString  *NSURLPathExtensionSeparator = @".";
    NSString                 *result;
    unsigned int             i;
 
-   c_string_len = [s _UTF8StringLength];
+   c_string_len = [s mulleUTF8StringLength];
    if( ! c_string_len)
    {
       [self release];
@@ -109,7 +108,7 @@ static NSString  *NSURLPathExtensionSeparator = @".";
          continue;
       }
       c_substring = &c_string[ url.field_data[ i].off];
-      result      = [[NSString alloc] _initWithUTF8Characters:(mulle_utf8_t*) c_substring
+      result      = [[NSString alloc] mulleInitWithUTF8Characters:(mulle_utf8_t*) c_substring
                                                        length:url.field_data[ i].len];
       switch( i)
       {
@@ -485,14 +484,12 @@ static NSRange  getPathExtensionRange( NSString *self)
    NSString         *s;
    NSURL            *clone;
    BOOL             flag;
-   NSEnumerator     *rover;
 
    result     = [NSMutableArray array];
    flag       = NO;
    components = [[self path] componentsSeparatedByString:NSURLPathComponentSeparator];
-   rover      = [components objectEnumerator];
 
-   while( s = [rover nextObject])
+   for( s in components)
    {
       if( [s isEqualToString:@"."])
       {
