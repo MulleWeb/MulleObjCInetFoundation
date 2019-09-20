@@ -40,6 +40,9 @@
 @class NSNumber;
 @class NSArray;
 
+extern NSString         *NSURLFileScheme;
+
+
 //
 // the URL will "preparse" the urlString. This makes URL objects
 // fairly "fat". To store many URLs just keep them as strings and
