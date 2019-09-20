@@ -90,9 +90,9 @@ static NSString  *NSURLPathExtensionSeparator = @".";
    http_parser_url_init( &url);
    if( http_parser_parse_url( c_string, c_string_len, 0, &url))
    {
-      // not so fast, assume it's a file url
+      // not so fast, assume it's a file url (and check that)
       _scheme = @"file";
-      _path   = [s copy];
+      _path   = [[s mulleStringByRemovingPrefix:@"file:"] copy];
       return( self);
    }
 
@@ -123,6 +123,8 @@ static NSString  *NSURLPathExtensionSeparator = @".";
 
    return( self);
 }
+
+
 
 //- (id) initWithString:(NSString *) s
 //{
@@ -209,7 +211,7 @@ static NSString  *NSURLPathExtensionSeparator = @".";
 //      [_port  retain];
 //   }
 //
-//   found  = [s _rangeOfCharactersFromSet:[NSCharacterSet URLSchemeAllowedCharacterSet]
+//   found  = [s mulleRangeOfCharactersFromSet:[NSCharacterSet URLSchemeAllowedCharacterSet]
 //                                 options:NSLiteralSearch|NSAnchoredSearch
 //                                   range:NSMakeRange( 0, [s length])];
 //   if( found.length)
@@ -224,9 +226,9 @@ static NSString  *NSURLPathExtensionSeparator = @".";
 //}
 //
 
-static void  copy( NSString **dst, NSURL *src, SEL sel)
+static void  copy( id <NSCopying> *dst, NSURL *src, SEL sel)
 {
-   NSString  *s;
+   id <NSCopying>  s;
 
    s    = [src performSelector:sel];
    *dst = [s copy];
@@ -239,16 +241,17 @@ static void  copy( NSString **dst, NSURL *src, SEL sel)
 
    p = [[self class] new];
 
+   copy( &p->_fragment, self, @selector( fragment));
+   copy( &p->_host, self, @selector( host));
+   copy( &p->_parameterString, self, @selector( parameterString));
+   copy( &p->_password, self, @selector( password));
+
+   copy( &p->_path, self, @selector( path));
+
+   copy( &p->_port, self, @selector( port));
+   copy( &p->_query, self, @selector( query));
    copy( &p->_scheme, self, @selector( scheme));
    copy( &p->_user, self, @selector( user));
-   copy( &p->_password, self, @selector( password));
-   copy( &p->_host, self, @selector( host));
-   copy( &p->_fragment, self, @selector( fragment));
-   copy( &p->_query, self, @selector( query));
-   copy( &p->_path, self, @selector( path));
-   copy( &p->_parameterString, self, @selector( parameterString));
-
-   p->_port = [self->_port copy];
 
    return( p);
 }
@@ -261,21 +264,21 @@ static void  copy( NSString **dst, NSURL *src, SEL sel)
 
    [self init];
 
-   copy( &_scheme, baseURL, @selector( scheme));
-   copy( &_user, baseURL, @selector( user));
-   copy( &_password, baseURL, @selector( password));
-   copy( &_host, baseURL, @selector( host));
    copy( &_fragment, baseURL, @selector( fragment));
-   copy( &_query, baseURL, @selector( query));
+   copy( &_host, baseURL, @selector( host));
    copy( &_parameterString, baseURL, @selector( parameterString));
+   copy( &_password, baseURL, @selector( password));
 
    s = [baseURL path];
    if( ! [string hasPrefix:@"/"] && ! [s hasSuffix:@"/"])
       s = [s stringByAppendingString:@"/"];
    s = [s stringByAppendingString:string];
-
    _path = [s copy];
-   _port = [[baseURL port] copy];
+
+   copy( &_port, baseURL, @selector( port));
+   copy( &_query, baseURL, @selector( query));
+   copy( &_scheme, baseURL, @selector( scheme));
+   copy( &_user, baseURL, @selector( user));
 
    return( self);
 }
@@ -509,7 +512,7 @@ static NSRange  getPathExtensionRange( NSString *self)
       return( self);
 
    clone = [[self copy] autorelease];
-   [clone->_path release];
+   [clone->_path autorelease];
 
    clone->_path = [[result componentsJoinedByString:NSURLPathComponentSeparator] retain];
    return( clone);

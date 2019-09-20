@@ -85,9 +85,11 @@
                          count:count]);
 }
 
-
 - (void) dealloc
 {
+   // properties will not be gone during finalize
+   [_addresses release];
+   [_names release];
    [_lock release];
    [super dealloc];
 }
