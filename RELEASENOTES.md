@@ -1,3 +1,8 @@
+## 0.16.0
+
+* fix a leak in NSHost
+
+
 ## 0.15.0
 
 * Various small improvements
