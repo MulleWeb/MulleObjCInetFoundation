@@ -1,0 +1,24 @@
+file://base-host/base-path/ (base)
+ + file://host:32765/path (relative)
+-> file://host:32765/path
+
+file://base-host/base-path/ (base)
+ + /rel_path/foo.html (relative)
+-> file://base-host/rel_path/foo.html
+
+file://base-host/base-path/ (base)
+ + rel_path/bar.html (relative)
+-> file://base-host/base-path/rel_path/bar.html
+
+file://base-host/base-path (base)
+ + file://host:32765/path (relative)
+-> file://host:32765/path
+
+file://base-host/base-path (base)
+ + /rel_path/foo.html (relative)
+-> file://base-host/rel_path/foo.html
+
+file://base-host/base-path (base)
+ + rel_path/bar.html (relative)
+-> file://base-host/rel_path/bar.html
+

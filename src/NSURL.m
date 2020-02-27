@@ -41,368 +41,866 @@
 // other libraries of MulleObjCStandardFoundation
 
 // std-c and dependencies
+#include <string.h>
+#include <ctype.h>
 
 
-static NSString  *NSURLPathComponentSeparator = @"/";
-static NSString  *NSURLPathExtensionSeparator = @".";
+// could ifdef for TPS here :)
+#define MulleURLPathComponentSeparator   @"/"
+#define MulleURLPathExtensionSeparator   @"."
+#define MulleURLPathParent               @".."
 
+
+//#define NO_EMPTY_URL
+#define APPLE_COMPATIBLE
+// #define RIDICULOUS_APPLE_COMPATIBLE
 
 @implementation NSURL
 
-+ (instancetype) URLWithString:(NSString *) s
+
+static struct
 {
-   return( [[[self alloc] initWithString:s] autorelease]);
+   mulle_thread_mutex_t   _lock;
+   NSMapTable             *_schemes;
+   NSMapTable             *_charsets;
+} Self;
+
+
++ (void) load
+{
+   mulle_thread_mutex_init( &Self._lock);
 }
 
 
-- (id) initWithScheme:(NSString *) scheme
-                 host:(NSString *) host
-                 path:(NSString *) path
++ (void) unload
 {
-   [self init];
+   if( Self._schemes)
+      NSFreeMapTable( Self._schemes);
+   if( Self._charsets)
+      NSFreeMapTable( Self._charsets);
+   mulle_thread_mutex_done( &Self._lock);
+}
 
-   _scheme = [scheme copy];
-   _host   = [host copy];
-   _path   = [path copy];
+
+enum URLCharacterSetCode
+{
+   URLSchemeAllowedCharacterSet,
+
+   URLEscapedUserAllowedCharacterSet,
+   URLEscapedPasswordAllowedCharacterSet,
+   URLEscapedHostAllowedCharacterSet,
+   URLEscapedPathAllowedCharacterSet,
+   URLEscapedParameterStringAllowedCharacterSet,
+   URLEscapedQueryAllowedCharacterSet,
+   URLEscapedFragmentAllowedCharacterSet,
+
+   URLEscapedAllowedCharacterSet
+};
+
+
+//
+// we need specialized character sets, because we are checking percent escaped
+// strings... If these turn out too big, then create custom ones...
+// in NSCharacterSet
+//
++ (void) initialize
+{
+   NSMutableCharacterSet   *characterSet;
+
+   mulle_thread_mutex_init( &Self._lock);
+   if( ! Self._charsets)
+   {
+      Self._charsets = NSCreateMapTable( NSIntegerMapKeyCallBacks,
+                                         NSObjectMapValueCallBacks,
+                                         8);
+
+      characterSet = (id) [NSCharacterSet mulleURLSchemeAllowedCharacterSet];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLSchemeAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLUserAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedUserAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLPasswordAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPasswordAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLHostAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedHostAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLPathAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPathAllowedCharacterSet, characterSet);
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedParameterStringAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLQueryAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedQueryAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet URLFragmentAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedFragmentAllowedCharacterSet, characterSet);
+
+      characterSet = [NSMutableCharacterSet mulleURLAllowedCharacterSet];
+      [characterSet addCharactersInString:@"%"];
+      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedAllowedCharacterSet, characterSet);
+   }
+   mulle_thread_mutex_done( &Self._lock);
+}
+
+
+
+static NSCharacterSet  *characterSetWithCode( enum URLCharacterSetCode code)
+{
+   NSCharacterSet   *characterSet;
+
+   mulle_thread_mutex_init( &Self._lock);
+   {
+      characterSet = NSMapGet( Self._charsets, (void  *) code);
+   }
+   mulle_thread_mutex_done( &Self._lock);
+
+   return( characterSet);
+}
+
+
+// handler must be a static or global struct, not allocated or autoreleased
+//
++ (void) mulleRegisterHandler:(struct MulleURLSchemeHandler *) handler
+                    forScheme:(NSString *) scheme
+{
+   mulle_thread_mutex_init( &Self._lock);
+   {
+      if( ! Self._schemes)
+         Self._schemes = NSCreateMapTable( NSObjectMapKeyCallBacks,
+                                           MulleSELMapValueCallBacks,
+                                           8);
+
+      NSMapInsert( Self._schemes, scheme, handler);
+   }
+   mulle_thread_mutex_done( &Self._lock);
+}
+
+
+
+
+static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
+{
+   struct MulleURLSchemeHandler    *handler;
+
+   scheme = [scheme lowercaseString];
+   mulle_thread_mutex_init( &Self._lock);
+   {
+      handler = NSMapGet( Self._schemes, scheme);
+   }
+   mulle_thread_mutex_done( &Self._lock);
+
+   return( handler);
+}
+
+
+
++ (instancetype) URLWithString:(NSString *) string
+{
+   return( [[[self alloc] initWithString:string] autorelease]);
+}
+
+
++ (instancetype) URLWithString:(NSString *) string
+                 relativeToURL:(NSURL *) baseURL
+{
+   return( [[[self alloc] initWithString:string
+                           relativeToURL:baseURL] autorelease]);
+}
+
+
+/*
+ *  init
+ */
+
+- (instancetype) initWithScheme:(NSString *) scheme
+                           host:(NSString *) host
+                           path:(NSString *) path
+{
+   struct MulleEscapedURLPartsUTF8   parts;
+
+   memset( &parts, 0, sizeof( parts));
+
+   // scheme = alpha *( alpha | digit | "+" | "-" | "." )
+
+   // here use characterset w/o percent escaping
+   host   = [host stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]];
+   path   = [host stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]];
+
+   parts.scheme_string             = (mulle_utf8_t *) [scheme UTF8String];
+   parts.scheme_string_len         = [scheme mulleUTF8StringLength];
+
+   parts.escaped_host_string       = (mulle_utf8_t *) [host UTF8String];
+   parts.escaped_host_string_len   = [host mulleUTF8StringLength];
+
+   parts.escaped_path_string       = (mulle_utf8_t *) [path UTF8String];
+   parts.escaped_path_string_len   = [path mulleUTF8StringLength];
+
+   return( [self mulleInitWithEscapedURLPartsUTF8:&parts
+                              allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+}
+
+
+
+static NSURL   *assign_checked_string_to_ivar( NSURL *self,
+                                               NSString **ivar,
+                                               NSString *s,
+                                               NSCharacterSet *characterSet)
+{
+   NSUInteger   length;
+
+   if( ! self || ! s)
+      return( self);
+
+   length = [s length];
+   if( characterSet && [s mulleRangeOfCharactersFromSet:characterSet
+                                                options:NSLiteralSearch
+                                                  range:NSMakeRange( 0, length)].length != length)
+   {
+#ifdef DEBUG
+      fprintf( stderr, "%s of URL has invalid characters\n", [s UTF8String]);
+#endif
+      [self release];
+      return( nil);
+   }
+
+   *ivar = [s copy];
+   return( self);
+}
+
+
+
+static id   assign_checked_utf8_to_ivar( NSURL *self,
+                                         NSString **ivar,
+                                         mulle_utf8_t *utf8,
+                                         NSUInteger length,
+                                         NSCharacterSet *characterSet)
+{
+   if( ! self)
+      return( self);
+
+   assert( utf8);
+
+   *ivar = [[NSString alloc] mulleInitWithUTF8Characters:utf8
+                                                  length:length];
+   if( ! *ivar)
+   {
+#ifdef DEBUG
+      fprintf( stderr, "%.*s of URL has invalid UTF8\n", (int) length, utf8);
+#endif
+      [self release];
+      return( nil);
+   }
+
+   if( characterSet && [*ivar mulleRangeOfCharactersFromSet:characterSet
+                                                    options:NSLiteralSearch
+                                                      range:NSMakeRange( 0, length)].length != length)
+   {
+#ifdef DEBUG
+      fprintf( stderr, "%.*s of URL has invalid characters\n", (int) length, utf8);
+#endif
+      [self release];
+      return( nil);
+   }
 
    return( self);
 }
 
 
-- (id) initWithString:(NSString *) s
++ (NSCharacterSet *) mulleURLEscapedAllowedCharacterSet
 {
-   char                     *c_string;
-   char                     *c_substring;
-   struct http_parser_url   url;
-   size_t                   c_string_len;
-   NSString                 *result;
-   unsigned int             i;
+   return( characterSetWithCode( URLEscapedAllowedCharacterSet));
+}
 
-   c_string_len = [s mulleUTF8StringLength];
-   if( ! c_string_len)
+//
+- (instancetype) mulleInitWithEscapedURLPartsUTF8:(struct MulleEscapedURLPartsUTF8 *) parts
+                              allowedCharacterSet:(NSCharacterSet *) allowedCharacterSet
+{
+   NSCharacterSet   *lenientCharacterSet;
+
+   // do this first before self can become nil
+   if( parts->port >= 0x10000)
+   {
+#ifdef DEBUG
+      fprintf( stderr, "port of URL is invalid\n");
+#endif
+
+      [self release];
+      return( nil);
+   }
+
+   if( parts->port)
+      _port = [[NSNumber alloc] initWithUnsignedInteger:parts->port];
+
+   // scheme (has not percent escapes)
+   if( parts->scheme_string)
+   {
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_scheme,
+                                          parts->scheme_string,
+                                          parts->scheme_string_len,
+                                          characterSetWithCode( URLSchemeAllowedCharacterSet));
+   }
+   // authority
+   if( parts->escaped_user_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedUser,
+                                          parts->escaped_user_string,
+                                          parts->escaped_user_string_len,
+                                          characterSetWithCode( URLEscapedUserAllowedCharacterSet));
+   if( parts->escaped_password_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedPassword,
+                                          parts->escaped_password_string,
+                                          parts->escaped_password_string_len,
+                                          characterSetWithCode( URLEscapedPasswordAllowedCharacterSet));
+   if( parts->escaped_host_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedHost,
+                                          parts->escaped_host_string,
+                                          parts->escaped_host_string_len,
+                                          characterSetWithCode( URLEscapedHostAllowedCharacterSet));
+
+   // Use allowedCharacterSet as mulleURLAllowedCharacterSet if we don't want to
+   // inconvience a possibly incorrect split up URI of an unknown scheme
+
+   if( parts->escaped_path_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedPath,
+                                          parts->escaped_path_string,
+                                          parts->escaped_path_string_len,
+                                          allowedCharacterSet
+                                             ? allowedCharacterSet
+                                             : characterSetWithCode( URLEscapedPathAllowedCharacterSet));
+   // part of path really
+   if( parts->escaped_parameter_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedParameterString,
+                                          parts->escaped_parameter_string,
+                                          parts->escaped_parameter_string_len,
+                                          allowedCharacterSet
+                                             ? allowedCharacterSet
+                                             : characterSetWithCode( URLEscapedParameterStringAllowedCharacterSet));
+   // query
+   if( parts->escaped_query_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedQuery,
+                                          parts->escaped_query_string,
+                                          parts->escaped_query_string_len,
+                                          allowedCharacterSet
+                                             ? allowedCharacterSet
+                                             : characterSetWithCode( URLEscapedQueryAllowedCharacterSet));
+   // fragment
+   if( parts->escaped_fragment_string)
+      self = assign_checked_utf8_to_ivar( self,
+                                          &_escapedFragment,
+                                          parts->escaped_fragment_string,
+                                          parts->escaped_fragment_string_len,
+                                          allowedCharacterSet
+                                             ? allowedCharacterSet
+                                             : characterSetWithCode( URLEscapedFragmentAllowedCharacterSet));
+
+#ifdef DEBUG
+   [self mulleDump];
+#endif
+   return( self);
+}
+
+
+
+- (instancetype) mulleInitWithUTF8Characters:(mulle_utf8_t *) utf8
+                                      length:(NSUInteger) length
+{
+   mulle_utf8_t                        *s;
+   SEL                                 init;
+   struct MulleURLSchemeHandler        *handler;
+   struct MulleURLSchemeInitArguments  args;
+
+   if( ! utf8)
    {
       [self release];
       return( nil);
-
    }
-   c_string = (char *) [s UTF8String];
 
-   http_parser_url_init( &url);
-   if( http_parser_parse_url( c_string, c_string_len, 0, &url))
+#ifdef NO_EMPTY_URL
+   if( ! length)
    {
-      // not so fast, assume it's a file url (and check that)
-      _scheme = @"file";
-      _path   = [[s mulleStringByRemovingPrefix:@"file:"] copy];
+#ifdef DEBUG
+      fprintf( stderr, "empty URL is invalid\n");
+#endif
+      [self release];
+      return( nil);
+   }
+#endif
+
+   // we want to differentiate between URLS w/o a scheme
+   // URLs with a known scheme and URLs with an unknown scheme
+
+   handler     = NULL;
+   s           = mulle_utf8_strnchr( utf8, length, ':');
+
+   if( ! s)
+      return( [self mulleInitResourceSpecifierWithUTF8Characters:utf8
+                                                          length:length]);
+
+
+   args.scheme_length = s - utf8;
+   _scheme            = [[NSString alloc] mulleInitWithUTF8Characters:utf8
+                                                               length:args.scheme_length];
+   handler            = lookupHandlerForScheme( _scheme);
+
+   if( handler)
+   {
+      args.utf    = utf8;
+      args.length = length;
+
+      return( [self performSelector:handler->initURL
+                         withObject:(id) &args]);
+   }
+
+   //
+   // known scheme but no handler ? handle generically
+   //
+   utf8   += args.scheme_length + 1;
+   length -= args.scheme_length + 1;
+
+   return( [self mulleInitResourceSpecifierWithUTF8Characters:utf8
+                                                       length:length]);
+}
+
+
+- (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(mulle_utf8_t *) utf
+                                                        length:(NSUInteger) length
+{
+   struct http_parser_url            url;
+   struct MulleEscapedURLPartsUTF8   parts;
+   mulle_utf8_t                      *end;
+   mulle_utf8_t                      *tmp;
+
+   // now do it all manually :(
+   memset( &parts, 0, sizeof( parts));
+
+#ifdef RIDICULOUS_APPLE_COMPATIBLE
+   // do this for compatibility (late added hack)
+   if( length >= 2 && utf[ 0] == utf[ 1] && utf[ 0] == '/')
+   {
+      parts.escaped_host_string     = &utf[ 2];
+      parts.escaped_host_string_len = length - 2;
+      tmp                           = mulle_utf8_strnchr( parts.escaped_host_string,
+                                                          parts.escaped_host_string_len,
+                                                          '/');
+
+      if( ! tmp)
+      {
+#ifdef APPLE_COMPATIBLE
+         parts.escaped_path_string     = parts.escaped_host_string;
+         parts.escaped_path_string_len = 0;
+#endif
+         return( [self mulleInitWithEscapedURLPartsUTF8:&parts
+                                    allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+      }
+
+      // no hostname, then just parse as path again
+      if( tmp == parts.escaped_host_string)
+      {
+         parts.escaped_host_string     = NULL;
+         parts.escaped_host_string_len = 0;
+      }
+      else
+      {
+         parts.escaped_host_string_len = (tmp - parts.escaped_host_string);
+
+         utf     = tmp;
+         length -= 2 + parts.escaped_host_string_len; // "//" <host>
+      }
+   }
+#endif
+
+   parts.escaped_parameter_string = mulle_utf8_strnchr( utf, length, ';');
+   parts.escaped_query_string     = mulle_utf8_strnchr( utf, length, '?');
+   parts.escaped_fragment_string  = mulle_utf8_strnchr( utf, length, '#');
+
+   // some sanity checks
+   if( parts.escaped_query_string)
+   {
+      if( parts.escaped_parameter_string > parts.escaped_query_string)
+         parts.escaped_parameter_string = NULL;
+   }
+
+   if( parts.escaped_fragment_string)
+   {
+      if( parts.escaped_parameter_string > parts.escaped_fragment_string)
+         parts.escaped_parameter_string = NULL;
+      if( parts.escaped_query_string > parts.escaped_fragment_string)
+         parts.escaped_query_string = NULL;
+   }
+
+   // calc lengths
+   // calc length of path
+   {
+      if( parts.escaped_parameter_string)
+         end = parts.escaped_parameter_string;
+      else
+         if( parts.escaped_query_string)
+            end = parts.escaped_query_string;
+         else
+            if( parts.escaped_fragment_string)
+               end = parts.escaped_fragment_string;
+            else
+               end = &utf[ length];
+
+      parts.escaped_path_string_len = end - utf;
+      if( parts.escaped_path_string_len) // 4 beauty
+         parts.escaped_path_string = utf;
+   }
+
+   if( parts.escaped_parameter_string)
+   {
+      if( parts.escaped_query_string)
+         end = parts.escaped_query_string;
+      else
+         if( parts.escaped_fragment_string)
+            end = parts.escaped_fragment_string;
+         else
+            end = &utf[ length];
+
+      parts.escaped_parameter_string++;
+      parts.escaped_parameter_string_len = end - parts.escaped_parameter_string;
+   }
+
+   if( parts.escaped_query_string)
+   {
+      if( parts.escaped_fragment_string)
+         end = parts.escaped_fragment_string;
+      else
+         end = &utf[ length];
+
+      parts.escaped_query_string++;
+      parts.escaped_query_string_len = end - parts.escaped_query_string;
+   }
+
+   if( parts.escaped_fragment_string)
+   {
+      end = &utf[ length];
+
+      parts.escaped_fragment_string++;
+      parts.escaped_fragment_string_len = end - parts.escaped_fragment_string;
+   }
+
+   return( [self mulleInitWithEscapedURLPartsUTF8:&parts
+                              allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+}
+
+
+- (instancetype) initWithString:(NSString *) s
+{
+   NSUInteger     length;
+   mulle_utf8_t   *utf8;
+
+   NSParameterAssert( ! s || [s isKindOfClass:[NSString class]]);
+
+   length = [s mulleUTF8StringLength];
+   utf8   = (mulle_utf8_t *) [s UTF8String];
+
+   return( [self mulleInitWithUTF8Characters:utf8
+                                      length:length]);
+}
+
+
+- (instancetype) initWithString:(NSString *) string
+                  relativeToURL:(NSURL *) baseURL
+{
+   NSURL             *url;
+   NSString          *path;
+   NSMutableArray    *components;
+   NSArray           *array;
+
+   NSParameterAssert( ! baseURL || [baseURL isKindOfClass:[NSURL class]]);
+
+   self = [self initWithString:string];
+   if( ! self || ! baseURL)
+      return( self);
+
+   if( _scheme)
+      return( self);
+
+   _scheme = [baseURL->_scheme copy];
+
+   if( ! _escapedHost)
+   {
+      assert( ! _escapedUser);
+      assert( ! _escapedPassword);
+
+      _escapedUser     = [baseURL->_escapedUser copy];
+      _escapedPassword = [baseURL->_escapedPassword copy];
+      _escapedHost     = [baseURL->_escapedHost copy];
+      _port            = [baseURL->_port copy];
+   }
+
+   //
+   // if path is empty we only merge from baseURL until we have something
+   //
+   if( ! _escapedPath)
+   {
+      _escapedPath = [baseURL->_escapedPath copy];
+      if( ! _escapedParameterString)
+      {
+         _escapedParameterString = [baseURL->_escapedParameterString copy];
+         if( ! _escapedQuery)
+         {
+            _escapedQuery = [baseURL->_escapedQuery copy];
+            if( ! _escapedFragment)
+               _escapedFragment = [baseURL->_escapedFragment copy];
+         }
+      }
       return( self);
    }
 
-   assert( ! _scheme && ! _host && ! _path && ! _query && ! _fragment && !_parameterString);
+   // otherwise merge paths, if relative
+   if( [_escapedPath hasPrefix:@"/"]) // don't concat if absolute
+      return( self);
 
-   for( i = UF_SCHEMA; i < UF_MAX; i++)
-   {
-      if( ! (url.field_set & (1 << i)))
-         continue;
-      if( i == UF_PORT)
-      {
-         _port = [NSNumber numberWithUnsignedShort:url.port];
-         continue;
-      }
-      c_substring = &c_string[ url.field_data[ i].off];
-      result      = [[NSString alloc] mulleInitWithUTF8Characters:(mulle_utf8_t*) c_substring
-                                                       length:url.field_data[ i].len];
-      switch( i)
-      {
-      case UF_SCHEMA   : _scheme          = result; break;
-      case UF_HOST     : _host            = result; break;
-      case UF_PATH     : _path            = result; break;
-      case UF_QUERY    : _query           = result; break;
-      case UF_FRAGMENT : _fragment        = result; break;
-      case UF_USERINFO : _parameterString = result; break;
-      }
-   }
+   array      = [baseURL->_escapedPath componentsSeparatedByString:MulleURLPathComponentSeparator];
+   components = [NSMutableArray arrayWithArray:array];
+
+   // get rid of '/' or overwritten last component, except if only entry (/)
+   if( [components count] > 1)
+      [components removeLastObject];
+
+   array      = [_escapedPath componentsSeparatedByString:MulleURLPathComponentSeparator];
+   [components addObjectsFromArray:array];
+
+   [_escapedPath autorelease];
+   _escapedPath = [[components componentsJoinedByString:MulleURLPathComponentSeparator] copy];
 
    return( self);
 }
 
 
 
-//- (id) initWithString:(NSString *) s
-//{
-//   NSUInteger       length;
-//   NSRange          found;
-//   NSScanner        *scanner;
-//   NSUInteger       memo;
-//   NSString         *tmp;
-//
-//   scanner = [NSScanner scannerWithString:s];
-//
-//   // scan optional scheme:/[/]
-//   memo = [scanner scanLocation];
-//   if( [scanner scanCharactersFromSet:[NSCharacterSet URLSchemeAllowedCharacterSet]
-//                          intoString:&_scheme])
-//   {
-//      if( [scanner scanString:@":/"
-//                  intoString:NULL])
-//      {
-//         // slurp in optional '/'
-//         [scanner scanString:@"/"
-//                  intoString:NULL];
-//      }
-//      else
-//      {
-//         // wind back to top
-//         [scanner setScanLocation:memo];
-//         _scheme = nil;
-//      }
-//      [_scheme retain];
-//   }
-//
-//   // scan optional user:password@
-//   memo = [scanner scanLocation];
-//   if( [scanner scanCharactersFromSet:[NSCharacterSet URLUserAllowedCharacterSet]
-//                       intoString:&_user])
-//   {
-//      if( [scanner scanString:@":"
-//                   intoString:NULL])
-//      {
-//         if( ! [scanner scanCharactersFromSet:[NSCharacterSet URLPasswordAllowedCharacterSet]
-//                                 intoString:&_password])
-//            goto fail;
-//      }
-//
-//      if( ! [scanner scanString:@"@"
-//                     intoString:NULL])
-//      {
-//fail:
-//         // wind back to top
-//         [scanner setScanLocation:memo];
-//         _user     = nil;
-//         _password = nil;
-//      }
-//      [_user  retain];
-//      [_password  retain];
-//   }
-//
-//   // scan optional host:port /
-//   memo = [scanner scanLocation];
-//   if( [scanner scanCharactersFromSet:[NSCharacterSet URLHostAllowedCharacterSet]
-//                           intoString:&_host])
-//   {
-//      if( [scanner scanString:@":"
-//                   intoString:NULL])
-//      {
-//         if( ! [scanner scanCharactersFromSet:[NSCharacterSet decimalDigitCharacterSet]
-//                                   intoString:&tmp])
-//            goto fail2;
-//
-//         _port = [NSNumber numberWithInt:[tmp intValue]];
-//      }
-//
-//      if( ! [scanner scanString:@"/"
-//                     intoString:NULL])
-//      {
-//fail2:
-//         // wind back to top
-//         [scanner setScanLocation:memo];
-//         _host = nil;
-//         _port = nil;
-//      }
-//      [_host  retain];
-//      [_port  retain];
-//   }
-//
-//   found  = [s mulleRangeOfCharactersFromSet:[NSCharacterSet URLSchemeAllowedCharacterSet]
-//                                 options:NSLiteralSearch|NSAnchoredSearch
-//                                   range:NSMakeRange( 0, [s length])];
-//   if( found.length)
-//   {
-//      if( [s rangeOfString:@":/"
-//                   options:NSLiteralSearch|NSAnchoredSearch
-//                  range:NSMakeRange( 0, [s length]
-//   }
-//
-//   [self release];  // TODO
-//   return( nil);
-//}
-//
-
-static void  copy( id <NSCopying> *dst, NSURL *src, SEL sel)
+- (void) dealloc
 {
-   id <NSCopying>  s;
+   [_scheme release];
+   [_escapedUser release];
+   [_escapedPassword release];
+   [_escapedHost release];
+   [_port release];
+   [_escapedPath release];
+   [_escapedParameterString release];
+   [_escapedQuery release];
+   [_escapedFragment release];
 
-   s    = [src performSelector:sel];
-   *dst = [s copy];
+   [super dealloc];
 }
 
 
+
+// we are immutable...
 - (id) copy
 {
-   NSURL  *p;
-
-   p = [[self class] new];
-
-   copy( &p->_fragment, self, @selector( fragment));
-   copy( &p->_host, self, @selector( host));
-   copy( &p->_parameterString, self, @selector( parameterString));
-   copy( &p->_password, self, @selector( password));
-
-   copy( &p->_path, self, @selector( path));
-
-   copy( &p->_port, self, @selector( port));
-   copy( &p->_query, self, @selector( query));
-   copy( &p->_scheme, self, @selector( scheme));
-   copy( &p->_user, self, @selector( user));
-
-   return( p);
+   return( [self retain]);
 }
 
 
-- (id) initWithString:(NSString *) string
-        relativeToURL:(NSURL *) baseURL
+/*
+ * Convert to string
+ */
+
+- (NSString *) mulleGenericResourceSpecifierDescription
 {
-   NSString   *s;
+   NSMutableString   *result;
 
-   [self init];
+   //
+   // not sure what to do if baseURL has a resourceSpecifier
+   //
+   result = [NSMutableString string];
 
-   copy( &_fragment, baseURL, @selector( fragment));
-   copy( &_host, baseURL, @selector( host));
-   copy( &_parameterString, baseURL, @selector( parameterString));
-   copy( &_password, baseURL, @selector( password));
+   if( _escapedPath)
+      [result appendString:_escapedPath];
 
-   s = [baseURL path];
-   if( ! [string hasPrefix:@"/"] && ! [s hasSuffix:@"/"])
-      s = [s stringByAppendingString:@"/"];
-   s = [s stringByAppendingString:string];
-   _path = [s copy];
+   if( _escapedParameterString)
+   {
+      [result appendString:@";"];
+      [result appendString:_escapedParameterString];
+   }
 
-   copy( &_port, baseURL, @selector( port));
-   copy( &_query, baseURL, @selector( query));
-   copy( &_scheme, baseURL, @selector( scheme));
-   copy( &_user, baseURL, @selector( user));
+   if( _escapedQuery)
+   {
+      [result appendString:@"?"];
+      [result appendString:_escapedQuery];
+   }
 
-   return( self);
+   if( _escapedFragment)
+   {
+      [result appendString:@"#"];
+      [result appendString:_escapedFragment];
+   }
+   return( result);
 }
 
 
-- (NSString *) absoluteString
+//
+// <image url="https://en.wikipedia.org/wiki/File:URI_syntax_diagram.svg">
+//
+- (NSString *) mulleGenericURLDescription
 {
-   NSMutableString   *s;
+   NSMutableString   *result;
+   NSString          *uri;
 
-   s = [NSMutableString string];
+   result = [NSMutableString string];
+
    if( _scheme)
    {
-      [s appendString:_scheme];
-      [s appendString:@":/"];
+      [result appendString:_scheme];
+      [result appendString:@":"];
    }
 
-   if( _host)
+   // The URL syntax is dependent upon the scheme.!
+   // If the "//" are printed or not
+   // e.g. file:///etc/passwd has always a host component, even if empty
+   // but mailto:user@foo.com doesn't.
+   //
+   // It's easier for printing if we allow "host" as nil and @"", which in
+   // turn will print either http:/foo.com/x.html or http://foo.com/x.html
+   // authority
+   //
+
+   if( _escapedHost)
    {
-      [s appendString:@""];
-      if( _user)
+      [result appendString:@"//"];
+
+      if( _escapedUser)
       {
-         [s appendString:_user];
-         if( _password)
+         [result appendString:_escapedUser];
+
+         if( _escapedPassword)
          {
-            [s appendString:@":"];
-            [s appendString:_password];
+            [result appendString:@":"];
+            [result appendString:_escapedPassword];
          }
-         [s appendString:@"@"];
+
+         [result appendString:@"@"];
       }
-      [s appendString:_host];
+
+      [result appendString:_escapedHost];
+
       if( _port)
       {
-         [s appendString:@":"];
-         [s appendString:[_port description]];
+         [result appendString:@":"];
+         [result appendString:[_port description]];
       }
    }
 
-   if( _path)
-   {
-      [s appendString:@"/"];
-      [s appendString:_path];
+   uri = [self mulleEscapedResourceSpecifier];
+   [result appendString:uri];
 
-      if( _query)
-      {
-         [s appendString:@"?"];
-         [s appendString:_query];
-         if( _parameterString)
-         {
-            [s appendString:@"&"]; // ???
-            [s appendString:_parameterString];
-         }
-      }
+   return( result);
+}
 
-      if( _fragment)
-      {
-         [s appendString:@"#"];
-         [s appendString:_fragment];
-      }
-   }
+
+- (NSString *) description
+{
+   SEL                            print;
+   NSString                       *s;
+   struct MulleURLSchemeHandler   *handler;
+
+   handler = lookupHandlerForScheme( _scheme);
+   print   = handler ? handler->printURL : @selector( mulleGenericURLDescription);
+   s       = [self performSelector:print];
+   return( s);
+}
+
+
+- (NSString *) mulleEscapedResourceSpecifier
+{
+   SEL                            print;
+   NSString                       *s;
+   struct MulleURLSchemeHandler   *handler;
+
+   handler = lookupHandlerForScheme( _scheme);
+   print   = handler ? handler->printResourceSpecifier
+                     : @selector( mulleGenericResourceSpecifierDescription);
+   s       = [self performSelector:print];
    return( s);
 }
 
 
 
-static BOOL  append( NSMutableString *s, NSString *value)
+#pragma mark - unescaping accessors
+
+//
+// This property contains the path, unescaped using the
+// stringByReplacingPercentEscapesUsingEncoding: method. If the receiver does
+// not conform to RFC 1808, this property contains nil.
+//
+- (NSString *) scheme
 {
-   if( value)
-   {
-      [s appendString:value];
-      return( YES);
-   }
-   return( NO);
+   return( _scheme);
 }
 
 
-static void   _appendResourceSpecifierToMutableString( NSURL *self, NSMutableString *s)
+- (NSNumber *) port
 {
-   if( self->_host)
-   {
-      append( s, @"/");
-      if( self->_user)
-      {
-         append( s, self->_user);
-         if( self->_password)
-         {
-            append( s, @":");
-            append( s, self->_password);
-         }
-         append( s, @"@");
-      }
-      append( s, self->_host);
-      if( self->_port)
-      {
-         append( s, @":");
-         append( s, [self->_port description]);
-      }
-   }
-   if( self->_path)
-   {
-      append( s, @"/");
-      append( s, self->_path);
-   }
-   if( self->_query)
-   {
-      append( s, @"?");
-      append( s, self->_query);
-   }
-   if( self->_fragment)
-   {
-      append( s, @"#");
-      append( s, self->_fragment);
-   }
+   return( _port);
+}
+
+- (NSString *) user
+{
+   return( [_escapedUser stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) password
+{
+   return( [_escapedPassword stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) host
+{
+   return( [_escapedHost stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) path
+{
+   return( [_escapedPath stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) parameterString
+{
+   return( [_escapedParameterString stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) query
+{
+   return( [_escapedQuery stringByRemovingPercentEncoding]);
+}
+
+
+- (NSString *) fragment
+{
+   return( [_escapedFragment stringByRemovingPercentEncoding]);
 }
 
 
 - (NSString *) resourceSpecifier
 {
-   NSMutableString  *s;
-
-   s = [NSMutableString string];
-   _appendResourceSpecifierToMutableString( self, s);
-   return( s);
+   return( [[self mulleEscapedResourceSpecifier] stringByRemovingPercentEncoding]);
 }
 
+
+/*
+ * For compatibility some methods operating on path
+ */
 
 //
 // can't reuse NSString code, because it might have different separator
@@ -410,7 +908,7 @@ static void   _appendResourceSpecifierToMutableString( NSURL *self, NSMutableStr
 //
 static NSRange  getLastPathComponentRange( NSString *self)
 {
-   return( [self rangeOfString:NSURLPathComponentSeparator
+   return( [self rangeOfString:MulleURLPathComponentSeparator
                        options:NSBackwardsSearch]);
 }
 
@@ -424,7 +922,7 @@ static NSRange  getPathExtensionRange( NSString *self)
    if( range1.length == 0)
       return( range1);
 
-   range2 = [self rangeOfString:NSURLPathExtensionSeparator
+   range2 = [self rangeOfString:MulleURLPathExtensionSeparator
                         options:NSBackwardsSearch];
    if( range2.length && range1.location < range2.location)
       return( NSMakeRange( NSNotFound, 0));
@@ -435,117 +933,80 @@ static NSRange  getPathExtensionRange( NSString *self)
 
 - (NSArray *) pathComponents
 {
-   return( [_path componentsSeparatedByString:NSURLPathComponentSeparator]);
+   return( [[self path] componentsSeparatedByString:MulleURLPathComponentSeparator]);
 }
 
 
 - (NSString *) lastPathComponent
 {
    NSRange   range;
+   NSString  *path;
 
-   range = getLastPathComponentRange( _path);
+   path  = [self path];
+   range = getLastPathComponentRange( path);
    if( ! range.length)
-      return( _path);
+      return( path);
 
-   return( [_path substringFromIndex:range.location + 1]);
+   return( [path substringFromIndex:range.location + 1]);
 }
 
 
 - (NSString *) pathExtension
 {
-   NSRange   range;
+   NSRange    range;
+   NSString   *path;
 
-   range = getPathExtensionRange( _path);
+   path  = [self path];
+   range = getPathExtensionRange( path);
    if( ! range.length)
       return( nil);
-   return( [_path substringFromIndex:range.location + 1]);
+   return( [path substringFromIndex:range.location + 1]);
+}
+
+
+
+#pragma mark - obsolete stuff
+
+- (NSURL *) standardizedURL
+{
+   return( self);
+}
+
+
+- (NSString *) absoluteString
+{
+   return( [self description]);
 }
 
 
 - (NSURL *) absoluteURL
 {
-   if( [_path hasPrefix:NSURLPathComponentSeparator])
-      return( self);
-   abort();
-   return( nil);
+   return( self);
+}
+
+
+- (NSString *) relativePath
+{
+   return( [self path]);
+}
+
+
+- (NSString *) relativeString
+{
+   if( [self mulleIsAbsolutePath])
+      return( [self absoluteString]);
+   return( [self mulleEscapedResourceSpecifier]);
 }
 
 
 - (NSURL *) baseURL
 {
-   abort();
    return( nil);
 }
 
 
-// non-optimal ...
 
-- (NSURL *) standardizedURL
-{
-   NSArray          *components;
-   NSMutableArray   *result;
-   NSString         *s;
-   NSURL            *clone;
-   BOOL             flag;
-
-   result     = [NSMutableArray array];
-   flag       = NO;
-   components = [[self path] componentsSeparatedByString:NSURLPathComponentSeparator];
-
-   for( s in components)
-   {
-      if( [s isEqualToString:@"."])
-      {
-         flag = YES;
-         continue;
-      }
-      if( [s isEqualToString:@".."])
-      {
-         flag = YES;
-         [result removeLastObject];
-         continue;
-      }
-      [result addObject:s];
-   }
-
-   if( ! flag)
-      return( self);
-
-   clone = [[self copy] autorelease];
-   [clone->_path autorelease];
-
-   clone->_path = [[result componentsJoinedByString:NSURLPathComponentSeparator] retain];
-   return( clone);
-}
-
-#pragma mark -
-#pragma mark unescaping accessors
-
-//
-// This property contains the path, unescaped using the
-// stringByReplacingPercentEscapesUsingEncoding: method. If the receiver does
-// not conform to RFC 1808, this property contains nil.
-//
-- (NSString *) path
-{
-   return( [_path stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
-}
-
-
-- (NSString *) host
-{
-   return( [_host stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
-}
-
-- (NSString *) user
-{
-   return( [_user stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
-}
-
-
-
-#pragma mark -
-#pragma mark queries
+#pragma mark - queries
 
 - (BOOL) isFileURL
 {
@@ -553,14 +1014,27 @@ static NSRange  getPathExtensionRange( NSString *self)
 }
 
 
-- (BOOL) isAbsolutePath
+- (BOOL) mulleIsAbsolutePath
 {
-   return( [_path hasPrefix:NSURLPathComponentSeparator]);
+   return( [_escapedPath hasPrefix:MulleURLPathComponentSeparator]);
 }
 
-- (NSString *) description
+
+#if DEBUG
+- (void) mulleDump
 {
-   return( [self absoluteString]);
+   char  *s;
+
+   fprintf( stderr, "Scheme    : %p %s\n", _scheme,          (s = [_scheme cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "User      : %p %s\n", _escapedUser,     (s = [_escapedUser cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Password  : %p %s\n", _escapedPassword, (s = [_escapedPassword cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Host      : %p %s\n", _escapedHost,     (s = [_escapedHost cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Port      : %p %ld\n",_port,     [_port longValue]);
+   fprintf( stderr, "Path      : %p %s\n", _escapedPath,     (s = [_escapedPath cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Parameter : %p %s\n", _escapedParameterString,  (s = [_escapedParameterString cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Query     : %p %s\n", _escapedQuery,    (s = [_escapedQuery cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Fragment  : %p %s\n", _escapedFragment, (s = [_escapedFragment cStringDescription]) ? s : "*nil*");
 }
+#endif
 
 @end

@@ -19,7 +19,7 @@ if( NOT MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY)
    #
    if( MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY)
       #
-      # Add to MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY list.
+      # Add to MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY to ALL_LOAD_DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark MulleObjCStandardFoundation no-cmakeadd`
       #
       set( ALL_LOAD_DEPENDENCY_LIBRARIES
