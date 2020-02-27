@@ -6,8 +6,12 @@
 //  Copyright © 2016 Mulle kybernetiK. All rights reserved.
 //
 
+#ifdef __MULLE_OBJC__
+# import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
+#else
+# import <Foundation/Foundation.h>
+#endif
 
-#import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
 //#import "MulleStandaloneObjCFoundation.h"
 
 char  *safe_string( char *s)
@@ -26,7 +30,7 @@ int main( int argc, const char * argv[])
    {
       a = safe_string( [[url host] UTF8String]);
       b = safe_string( [[url path] UTF8String]);
-      printf( "%s %s\n", a, b);
+      printf( "host:%s path:%s\n", a, b);
    }
    else
       printf( "invalid #1\n");
@@ -36,10 +40,10 @@ int main( int argc, const char * argv[])
    {
       a = safe_string( [[url host] UTF8String]);
       b = safe_string( [[url path] UTF8String]);
-      printf( "%s %s\n", a, b);
+      printf( "host:%s path:%s\n", a, b);
    }
    else
-      printf( "invalid #1\n");
+      printf( "invalid #2\n");
 
    return( 0);
 }

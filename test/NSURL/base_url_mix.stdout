@@ -1,0 +1,32 @@
+http://base-user:base-password@base-host:80/base-path/;base-parameter?base-query#base-fragment (base)
+ + http://user:password@host:32765/path;parameter?query#fragment (relative)
+-> http://user:password@host:32765/path;parameter?query#fragment
+
+http://base-user:base-password@base-host:80/base-path/;base-parameter?base-query#base-fragment (base)
+ + /rel_path/foo.html#fragment (relative)
+-> http://base-user:base-password@base-host:80/rel_path/foo.html#fragment
+
+http://base-user:base-password@base-host:80/base-path/;base-parameter?base-query#base-fragment (base)
+ + rel_path/bar.html;parameter#fragment (relative)
+-> http://base-user:base-password@base-host:80/base-path/rel_path/bar.html;parameter#fragment
+
+http://base-user:base-password@base-host:80/base-path/;base-parameter?base-query#base-fragment (base)
+ + ;parameter (relative)
+-> http://base-user:base-password@base-host:80/base-path/;parameter
+
+http://base-host:80/base-path?base-query#base-fragment (base)
+ + http://user:password@host:32765/path;parameter?query#fragment (relative)
+-> http://user:password@host:32765/path;parameter?query#fragment
+
+http://base-host:80/base-path?base-query#base-fragment (base)
+ + /rel_path/foo.html#fragment (relative)
+-> http://base-host:80/rel_path/foo.html#fragment
+
+http://base-host:80/base-path?base-query#base-fragment (base)
+ + rel_path/bar.html;parameter#fragment (relative)
+-> http://base-host:80/rel_path/bar.html;parameter#fragment
+
+http://base-host:80/base-path?base-query#base-fragment (base)
+ + ;parameter (relative)
+-> http://base-host:80/base-path;parameter
+

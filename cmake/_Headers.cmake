@@ -18,6 +18,7 @@ set( PUBLIC_HEADERS
 src/MulleObjCInetFoundation.h
 src/MulleObjCLoader+MulleObjCInetFoundation.h
 src/NSHost.h
+src/NSString+HTML.h
 src/NSURL.h
 src/http_parser.h
 src/import.h

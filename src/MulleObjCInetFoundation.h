@@ -12,6 +12,9 @@
 #import "NSURL.h"
 #import "NSHost.h"
 
+// html ? not necessarily the proper place here...
+#import "NSString+HTML.h"
+
 #import "MulleObjCLoader+MulleObjCInetFoundation.h"
 
 // export nothing with _MulleObjC
