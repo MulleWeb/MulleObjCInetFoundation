@@ -96,46 +96,46 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
 
       switch( i)
       {
-      case UF_SCHEMA   : parts.scheme_string     = c_substring;
-                         parts.scheme_string_len = c_substring_len;
+      case UF_SCHEMA   : parts.scheme.characters = c_substring;
+                         parts.scheme.length     = c_substring_len;
                          break;
 
       // need to parse this into user/password/host part  ?
-      case UF_HOST     : parts.escaped_host_string     = c_substring;
-                         parts.escaped_host_string_len = c_substring_len;
+      case UF_HOST     : parts.escaped_host.characters = c_substring;
+                         parts.escaped_host.length     = c_substring_len;
                          break;
 
-      case UF_USERINFO : parts.escaped_password_string = mulle_utf8_strnchr( c_substring, c_substring_len, ':');
-                         if( parts.escaped_password_string)
+      case UF_USERINFO : parts.escaped_password.characters = mulle_utf8_strnchr( c_substring, c_substring_len, ':');
+                         if( parts.escaped_password.characters)
                          {
-                            ++parts.escaped_password_string;
-                            parts.escaped_password_string_len  = c_substring_len - (parts.escaped_password_string - c_substring);
-                            c_substring_len -= parts.escaped_password_string_len + 1;
+                            ++parts.escaped_password.characters;
+                            parts.escaped_password.length  = c_substring_len - (parts.escaped_password.characters - c_substring);
+                            c_substring_len               -= parts.escaped_password.length + 1;
                          }
-                         parts.escaped_user_string     = c_substring;
-                         parts.escaped_user_string_len = c_substring_len;
+                         parts.escaped_user.characters = c_substring;
+                         parts.escaped_user.length     = c_substring_len;
                          break;
 
       // need to parse this into path/parameterString part
-      case UF_PATH     : parts.escaped_parameter_string = mulle_utf8_strnchr( c_substring, c_substring_len, ';');
-                         if( parts.escaped_parameter_string)
+      case UF_PATH     : parts.escaped_parameter.characters = mulle_utf8_strnchr( c_substring, c_substring_len, ';');
+                         if( parts.escaped_parameter.characters)
                          {
-                            ++parts.escaped_parameter_string;
-                            parts.escaped_parameter_string_len  = c_substring_len - (parts.escaped_parameter_string - c_substring);
-                            c_substring_len -= parts.escaped_parameter_string_len + 1;
+                            ++parts.escaped_parameter.characters;
+                            parts.escaped_parameter.length  = c_substring_len - (parts.escaped_parameter.characters - c_substring);
+                            c_substring_len -= parts.escaped_parameter.length + 1;
                          }
-                         parts.escaped_path_string      = c_substring;
-                         parts.escaped_path_string_len  = c_substring_len;
+                         parts.escaped_path.characters = c_substring;
+                         parts.escaped_path.length     = c_substring_len;
 
                          // stupid parser mishandles query apparently
                          break;
 
-      case UF_QUERY    : parts.escaped_query_string     = c_substring;
-                         parts.escaped_query_string_len = c_substring_len;
+      case UF_QUERY    : parts.escaped_query.characters = c_substring;
+                         parts.escaped_query.length     = c_substring_len;
                          break;
 
-      case UF_FRAGMENT : parts.escaped_fragment_string      = c_substring;
-                         parts.escaped_fragment_string_len  = c_substring_len;
+      case UF_FRAGMENT : parts.escaped_fragment.characters = c_substring;
+                         parts.escaped_fragment.length     = c_substring_len;
                          break;
       }
    }
@@ -154,18 +154,19 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
    struct http_parser_url   url;
 
    http_parser_url_init( &url);
-   if( http_parser_parse_url( (char *) args->utf, args->length, 0, &url))
+
+   if( http_parser_parse_url( (char *) args->uri.characters, args->uri.length, 2, &url))
    {
 #ifdef DEBUG
-      fprintf( stderr, "http URL parse can't parse \"%.*s\"\n", (int) args->length, args->utf);
+      fprintf( stderr, "http URL parse can't parse \"%.*s\"\n", (int) args->uri.length, args->uri.characters);
 #endif
       [self release];
       return( nil);
    }
 
    return( [self mulleInitHTTPURLWithHTTPParserURL:&url
-                                    UTF8Characters:args->utf
-                                            length:args->length]);
+                                    UTF8Characters:args->uri.characters
+                                            length:args->uri.length]);
 }
 
 @end
