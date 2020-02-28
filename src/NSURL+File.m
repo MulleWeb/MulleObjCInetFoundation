@@ -78,8 +78,8 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
 
    memset( &parts, 0, sizeof( parts));
 
-   utf    = &args->utf[ args->scheme_length + 1];
-   length = args->length - (args->scheme_length + 1);
+   utf    = args->uri.characters;
+   length = args->uri.length;
 
    if( length >= 2 && utf[ 0] == utf[ 1] && utf[ 0] == '/')
    {
@@ -91,21 +91,21 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
       if( tmp == utf)
       {
          // needs this for '///'
-         parts.escaped_host_string     = (mulle_utf8_t *) "";
-         // parts._escaped_host_string_len = 0;
+         parts.escaped_host.characters     = (mulle_utf8_t *) "";
+         // parts._escaped_host.length = 0;
       }
       else
       {
-         parts.escaped_host_string     = utf;
-         parts.escaped_host_string_len = tmp - utf;
+         parts.escaped_host.characters = utf;
+         parts.escaped_host.length     = tmp - utf;
 
          utf     = tmp;
-         length -= parts.escaped_host_string_len;
+         length -= parts.escaped_host.length;
       }
    }
 
-   parts.escaped_path_string     = utf;
-   parts.escaped_path_string_len = length;
+   parts.escaped_path.characters = utf;
+   parts.escaped_path.length     = length;
 
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
                               allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);

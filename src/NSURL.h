@@ -46,59 +46,51 @@ extern NSString   *NSURLFileScheme;
 struct MulleEscapedURLPartsUTF8
 {
    // scheme
-   mulle_utf8_t  *scheme_string;
-   size_t        scheme_string_len;
+   struct mulle_utf8_data   scheme;
 
    // authority
-   mulle_utf8_t  *escaped_user_string;
-   size_t        escaped_user_string_len;
-   mulle_utf8_t  *escaped_password_string;
-   size_t        escaped_password_string_len;
-
-   mulle_utf8_t  *escaped_host_string;
-   size_t        escaped_host_string_len;
-
-   NSUInteger    port;
+   struct mulle_utf8_data   escaped_user;
+   struct mulle_utf8_data   escaped_password;
+   struct mulle_utf8_data   escaped_host;
+   NSUInteger               port;
 
    // path
-   mulle_utf8_t  *escaped_path_string;
-   size_t        escaped_path_string_len;
-   mulle_utf8_t  *escaped_parameter_string;
-   size_t        escaped_parameter_string_len;
+   struct mulle_utf8_data   escaped_path;
+   struct mulle_utf8_data   escaped_parameter;
 
    // query
-   mulle_utf8_t  *escaped_query_string;
-   size_t        escaped_query_string_len;
+   struct mulle_utf8_data   escaped_query;
 
    // fragment
-   mulle_utf8_t  *escaped_fragment_string;
-   size_t        escaped_fragment_string_len;
+   struct mulle_utf8_data   escaped_fragment;
 };
 
 
 struct MulleURLSchemeHandler
 {
-   SEL    initURL;
-   SEL    printURL;
-   SEL    printResourceSpecifier;
+   SEL   initURL;
+   SEL   printURL;
+   SEL   printResourceSpecifier;
 };
 
 
 struct MulleURLSchemeInitArguments
 {
-   mulle_utf8_t    *utf;
-   mulle_utf8_t    length;
-   mulle_utf8_t    scheme_length;
+   struct mulle_utf8_data   scheme;
+   struct mulle_utf8_data   uri;
 };
 
 
 // Dont't use NSURL for file access! Use NSFileManager!
 // NSURL is not an efficient storage mechanism for URLS, use NSString!
 //
-// NSURL will "preparse" the urlString. This makes URL objects
-// fairly "fat". The Apple NSURL has this concept of marrying two NSURLs
-// as baseURL and self with initWithString:baseURL:
+// NSURL will parse the urlString into constituent NSStrings. This makes
+// URL objects fairly "fat". NSURL does a decent amount of sanity checking
+// incoming strings. If you get nil back on init, then your URL is likely
+// malformed.
 //
+// The Apple NSURL has this concept of marrying two NSURLs
+// as baseURL and self with initWithString:baseURL:
 // MulleFoundation doesn't do this, but creates a single new URL.
 // I assume it's an outgrowth of the desire to replace strings for
 // file operations, but that's IMO not a good idea. This NSURL also doesn't
@@ -112,7 +104,7 @@ struct MulleURLSchemeInitArguments
    NSString   *_scheme;
    NSString   *_escapedUser;
    NSString   *_escapedPassword;
-   NSString   *_escapedHost;
+   NSString   *_escapedHost;  // percent escaping in http seems not possible ?
    NSNumber   *_port;
    NSString   *_escapedPath;
    NSString   *_escapedParameterString;
@@ -164,6 +156,13 @@ struct MulleURLSchemeInitArguments
 // incoming strings must be percent escaped already
 - (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(mulle_utf8_t *) utf
                                                        length:(NSUInteger) length;
+
+// for civetweb
+- (instancetype) mulleInitWithSchemeUTF8Characters:(mulle_utf8_t *) scheme
+                                             length:(NSUInteger) scheme_len
+                   resourceSpecifierUTF8Characters:(mulle_utf8_t *)uri
+                                             length:(NSUInteger) uri_len;
+
 /*
  * Support for different schemes
  */
@@ -178,6 +177,9 @@ struct MulleURLSchemeInitArguments
 // this is where mailto: keeps the part after scheme:
 // user-fragment will be nil then
 - (NSString *) mulleEscapedResourceSpecifier;
+
+// non-restrictive charset for ResourceSpecifier
++ (NSCharacterSet *) mulleURLEscapedAllowedCharacterSet;
 
 
 @end

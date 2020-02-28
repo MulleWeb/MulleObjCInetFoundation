@@ -62,21 +62,7 @@ RelativeString    : foo.txt
 Base              : *nil*
 Absolute          : file:foo.txt
 
-String: file:foo space.txt baseURL: *nil* -> <NSURL> file:foo space.txt
-Scheme            : file
-User              : *nil*
-Password          : *nil*
-Host              : *nil*
-Port              : 0
-Path              : foo space.txt
-Parameter         : *nil*
-Query             : *nil*
-Fragment          : *nil*
-ResourceSpecifier : foo space.txt
-RelativePath      : foo space.txt
-RelativeString    : foo space.txt
-Base              : *nil*
-Absolute          : file:foo space.txt
+String: file:foo space.txt baseURL: *nil* -> <*nil*> *nil*
 
 String: file:///foo%20space.txt baseURL: *nil* -> <NSURL> file:///foo%20space.txt
 Scheme            : file
@@ -174,21 +160,7 @@ RelativeString    : file:///foo.txt
 Base              : *nil*
 Absolute          : file:///foo.txt
 
-String: foo space.txt baseURL: file:///basepath/basecomponent;whatevs#20 -> <NSURL> file:///basepath/foo space.txt
-Scheme            : file
-User              : *nil*
-Password          : *nil*
-Host              : 
-Port              : 0
-Path              : /basepath/foo space.txt
-Parameter         : *nil*
-Query             : *nil*
-Fragment          : *nil*
-ResourceSpecifier : /basepath/foo space.txt
-RelativePath      : /basepath/foo space.txt
-RelativeString    : file:///basepath/foo space.txt
-Base              : *nil*
-Absolute          : file:///basepath/foo space.txt
+String: foo space.txt baseURL: file:///basepath/basecomponent;whatevs#20 -> <*nil*> *nil*
 
 String: /foo%20space.txt baseURL: file:///basepath/basecomponent;whatevs#20 -> <NSURL> file:///foo%20space.txt
 Scheme            : file

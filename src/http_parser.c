@@ -2338,17 +2338,28 @@ http_parser_url_init(struct http_parser_url *u) {
   memset(u, 0, sizeof(*u));
 }
 
+
+// mode=0  url
+// mode=1  is_connect
+// mode=2  uri
+
 int
-http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
+http_parser_parse_url(const char *buf, size_t buflen, int mode,
                       struct http_parser_url *u)
 {
   enum state s;
   const char *p;
   enum http_parser_url_fields uf, old_uf;
   int found_at = 0;
+  int is_connect = 0;
 
   u->port = u->field_set = 0;
-  s = is_connect ? s_req_server_start : s_req_spaces_before_url;
+  switch( mode)
+  {
+  default :  s = s_req_spaces_before_url; break;
+  case 1  :  s = s_req_server_start; is_connect = 1; break;
+  case 2  :  s = s_req_schema_slash; break;
+  }
   old_uf = UF_MAX;
 
   for (p = buf; p < buf + buflen; p++) {
