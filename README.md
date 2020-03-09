@@ -6,6 +6,11 @@ Adds **NSURL** and **NSHost** classes.
 Provides HTML escaping and unescaping for **NSString**.
 
 
+> This is part of the MulleFoundation and not MulleWeb because NSURL is used
+> (unfortunately) in the MulleObjCOSFoundation for various file operations.
+
+
+
 Build Status | Release Version
 -------------|-----------------------------------
 [![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleFoundation/MulleObjCInetFoundation.svg) [![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation)
