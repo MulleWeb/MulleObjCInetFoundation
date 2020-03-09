@@ -139,8 +139,12 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
                          break;
       }
    }
+
+   // assume the http URL parser did its job (?)
+   parts.validated = YES;
+
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                              allowedCharacterSet:nil]);
+                           allowedURICharacterSet:nil]);
 }
 
 

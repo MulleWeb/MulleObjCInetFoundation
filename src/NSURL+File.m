@@ -108,7 +108,7 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
    parts.escaped_path.length     = length;
 
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                              allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+                           allowedURICharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
 }
 
 @end

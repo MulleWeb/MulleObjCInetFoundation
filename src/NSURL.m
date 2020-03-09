@@ -48,34 +48,6 @@
 #define MulleURLPathParent               @".."
 
 
-static NSURL   *assign_checked_string_object_to_ivar( id self,
-                                                      NSString **ivar,
-                                                      NSString *s,
-                                                      NSCharacterSet *characterSet)
-{
-   NSUInteger   length;
-
-   if( ! self || ! s)
-      return( self);
-
-   length = [s length];
-   if( characterSet && [s mulleRangeOfCharactersFromSet:characterSet
-                                                options:NSLiteralSearch
-                                                  range:NSMakeRange( 0, length)].length != length)
-   {
-#ifdef DEBUG
-      fprintf( stderr, "%s of URL has invalid characters\n", [s UTF8String]);
-#endif
-      [self release];
-      return( nil);
-   }
-
-   *ivar = [s copy];
-   return( self);
-}
-
-
-
 static id   assign_checked_utf8_to_ivar( id self,
                                          NSString **ivar,
                                          mulle_utf8_t *utf8,
@@ -105,7 +77,7 @@ static id   assign_checked_utf8_to_ivar( id self,
 #ifdef DEBUG
       fprintf( stderr, "%.*s of URL has invalid characters\n", (int) length, utf8);
 #endif
-      [self release];
+      [self release]; // will release ivar
       return( nil);
    }
 
@@ -304,14 +276,16 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
    parts.escaped_path.characters = (mulle_utf8_t *) [path UTF8String];
    parts.escaped_path.length     = [path mulleUTF8StringLength];
 
+   parts.validated               = YES;
+
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                              allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+                           allowedURICharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
 }
 
 
 //
 - (instancetype) mulleInitWithEscapedURLPartsUTF8:(struct MulleEscapedURLPartsUTF8 *) parts
-                              allowedCharacterSet:(NSCharacterSet *) allowedCharacterSet
+                           allowedURICharacterSet:(NSCharacterSet *) allowedCharacterSet
 {
    NSCharacterSet   *lenientCharacterSet;
 
@@ -336,7 +310,9 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
                                           &_scheme,
                                           parts->scheme.characters,
                                           parts->scheme.length,
-                                          characterSetWithCode( URLSchemeAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : characterSetWithCode( URLSchemeAllowedCharacterSet));
    }
    // authority
    if( parts->escaped_user.characters)
@@ -344,19 +320,25 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
                                           &_escapedUser,
                                           parts->escaped_user.characters,
                                           parts->escaped_user.length,
-                                          characterSetWithCode( URLEscapedUserAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : characterSetWithCode( URLEscapedUserAllowedCharacterSet));
    if( parts->escaped_password.characters)
       self = assign_checked_utf8_to_ivar( self,
                                           &_escapedPassword,
                                           parts->escaped_password.characters,
                                           parts->escaped_password.length,
-                                          characterSetWithCode( URLEscapedPasswordAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : characterSetWithCode( URLEscapedPasswordAllowedCharacterSet));
    if( parts->escaped_host.characters)
       self = assign_checked_utf8_to_ivar( self,
                                           &_escapedHost,
                                           parts->escaped_host.characters,
                                           parts->escaped_host.length,
-                                          characterSetWithCode( URLEscapedHostAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : characterSetWithCode( URLEscapedHostAllowedCharacterSet));
 
    // Use allowedCharacterSet as mulleURLAllowedCharacterSet if we don't want to
    // inconvience a possibly incorrect split up URI of an unknown scheme
@@ -366,40 +348,44 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
                                           &_escapedPath,
                                           parts->escaped_path.characters,
                                           parts->escaped_path.length,
-                                          allowedCharacterSet
-                                             ? allowedCharacterSet
-                                             : characterSetWithCode( URLEscapedPathAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : allowedCharacterSet
+                                                ? allowedCharacterSet
+                                                : characterSetWithCode( URLEscapedPathAllowedCharacterSet));
    // part of path really
    if( parts->escaped_parameter.characters)
       self = assign_checked_utf8_to_ivar( self,
                                           &_escapedParameterString,
                                           parts->escaped_parameter.characters,
                                           parts->escaped_parameter.length,
-                                          allowedCharacterSet
-                                             ? allowedCharacterSet
-                                             : characterSetWithCode( URLEscapedParameterStringAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : allowedCharacterSet
+                                                ? allowedCharacterSet
+                                                : characterSetWithCode( URLEscapedParameterStringAllowedCharacterSet));
    // query
    if( parts->escaped_query.characters)
       self = assign_checked_utf8_to_ivar( self,
                                           &_escapedQuery,
                                           parts->escaped_query.characters,
                                           parts->escaped_query.length,
-                                          allowedCharacterSet
-                                             ? allowedCharacterSet
-                                             : characterSetWithCode( URLEscapedQueryAllowedCharacterSet));
+                                          parts->validated
+                                             ? NULL
+                                             : allowedCharacterSet
+                                                ? allowedCharacterSet
+                                                : characterSetWithCode( URLEscapedQueryAllowedCharacterSet));
    // fragment
    if( parts->escaped_fragment.characters)
       self = assign_checked_utf8_to_ivar( self,
                                           &_escapedFragment,
                                           parts->escaped_fragment.characters,
                                           parts->escaped_fragment.length,
-                                          allowedCharacterSet
-                                             ? allowedCharacterSet
-                                             : characterSetWithCode( URLEscapedFragmentAllowedCharacterSet));
-
-#ifdef DEBUG
-   [self mulleDump];
-#endif
+                                          parts->validated
+                                             ? NULL
+                                             : allowedCharacterSet
+                                                ? allowedCharacterSet
+                                                : characterSetWithCode( URLEscapedFragmentAllowedCharacterSet));
    return( self);
 }
 
@@ -490,7 +476,8 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
 
    scheme.characters = NULL;
    scheme.length     = 0;
-   scheme_end = parse_url_scheme( utf8, length);
+   scheme_end        = parse_url_scheme( utf8, length);
+
    if( scheme_end)
    {
       scheme.characters = utf8;
@@ -555,7 +542,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
       }
    }
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                              allowedCharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+                           allowedURICharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
 }
 
 
@@ -765,7 +752,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
 }
 
 
-- (NSString *) description
+- (NSString *) stringValue
 {
    SEL                            print;
    NSString                       *s;
@@ -775,6 +762,12 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    print   = handler ? handler->printURL : @selector( mulleGenericURLDescription);
    s       = [self performSelector:print];
    return( s);
+}
+
+
+- (NSString *) description
+{
+   return( [self stringValue]);
 }
 
 
@@ -936,7 +929,7 @@ static NSRange  getPathExtensionRange( NSString *self)
 
 - (NSString *) absoluteString
 {
-   return( [self description]);
+   return( [self stringValue]);
 }
 
 

@@ -63,6 +63,8 @@ struct MulleEscapedURLPartsUTF8
 
    // fragment
    struct mulle_utf8_data   escaped_fragment;
+
+   int                      validated;  // set to YES, if you validated the contents yourself
 };
 
 
@@ -142,14 +144,16 @@ struct MulleURLSchemeInitArguments
 - (NSString *) fragment;
 - (NSString *) resourceSpecifier;
 
-- (NSString *) description;   // URL with percent escapes
+- (NSString *) stringValue;   // transform into a string
+- (NSString *) description;   // URL with percent escapes (calls stringValue)
 
 // mulle extensions
 
+//
 // incoming strings must be percent escaped already
-// if you specify isLenient, path can contain query chars
+//
 - (instancetype) mulleInitWithEscapedURLPartsUTF8:(struct MulleEscapedURLPartsUTF8 *) parts
-                               allowedCharacterSet:(NSCharacterSet *) characterSet;
+                           allowedURICharacterSet:(NSCharacterSet *) characterSet;
 
 
 // parses just path;parameterString?query#fragment
