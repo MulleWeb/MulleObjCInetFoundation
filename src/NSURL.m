@@ -51,63 +51,44 @@
 static id   assign_checked_utf8_to_ivar( id self,
                                          NSString **ivar,
                                          mulle_utf8_t *utf8,
-                                         NSUInteger length,
+                                         NSUInteger utf8_length,
                                          NSCharacterSet *characterSet)
 {
+   NSUInteger   length;
+   
    if( ! self)
       return( self);
 
    assert( utf8);
 
+   if( utf8_length == (NSUInteger) -1)
+      utf8_length = mulle_utf8_strlen( utf8) + 1;
+
    *ivar = [[NSString alloc] mulleInitWithUTF8Characters:utf8
-                                                  length:length];
+                                                  length:utf8_length];
    if( ! *ivar)
    {
 #ifdef DEBUG
-      fprintf( stderr, "%.*s of URL has invalid UTF8\n", (int) length, utf8);
+      fprintf( stderr, "%.*s of URL has invalid UTF8\n", (int) utf8_length, utf8);
 #endif
       [self release];
       return( nil);
    }
 
+   // if utf8 contained emojis or stuff, length is now different
+   length = [*ivar length];
    if( characterSet && [*ivar mulleRangeOfCharactersFromSet:characterSet
                                                     options:NSLiteralSearch
                                                       range:NSMakeRange( 0, length)].length != length)
    {
 #ifdef DEBUG
-      fprintf( stderr, "%.*s of URL has invalid characters\n", (int) length, utf8);
+      fprintf( stderr, "%.*s of URL has invalid characters\n", (int) utf8_length, utf8);
 #endif
       [self release]; // will release ivar
       return( nil);
    }
 
    return( self);
-}
-
-
-@implementation NSURL
-
-static struct
-{
-   mulle_thread_mutex_t   _lock;
-   NSMapTable             *_schemes;
-   NSMapTable             *_charsets;
-} Self;
-
-
-+ (void) load
-{
-   mulle_thread_mutex_init( &Self._lock);
-}
-
-
-+ (void) unload
-{
-   if( Self._schemes)
-      NSFreeMapTable( Self._schemes);
-   if( Self._charsets)
-      NSFreeMapTable( Self._charsets);
-   mulle_thread_mutex_done( &Self._lock);
 }
 
 
@@ -125,6 +106,35 @@ enum URLCharacterSetCode
 
    URLEscapedAllowedCharacterSet
 };
+
+
+@implementation NSURL
+
+static struct
+{
+   mulle_thread_mutex_t   _lock;
+   NSMapTable             *_schemes;
+   NSMapTable             *_charsets;
+} Self;
+
+
+// for +initialize
+MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCStandardFoundation);
+
++ (void) load
+{
+   mulle_thread_mutex_init( &Self._lock);
+}
+
+
++ (void) unload
+{
+   if( Self._schemes)
+      NSFreeMapTable( Self._schemes);
+   if( Self._charsets)
+      NSFreeMapTable( Self._charsets);
+   mulle_thread_mutex_done( &Self._lock);
+}
 
 
 //
@@ -257,6 +267,7 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
                            host:(NSString *) host
                            path:(NSString *) path
 {
+   NSCharacterSet                    *set;
    struct MulleEscapedURLPartsUTF8   parts;
 
    memset( &parts, 0, sizeof( parts));
@@ -264,8 +275,10 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
    // scheme = alpha *( alpha | digit | "+" | "-" | "." )
 
    // here use characterset w/o percent escaping
-   host = [host stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]];
-   path = [host stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]];
+   set  = [NSCharacterSet URLHostAllowedCharacterSet];
+   host = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
+   set  = [NSCharacterSet URLPathAllowedCharacterSet];
+   path = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
 
    parts.scheme.characters       = (mulle_utf8_t *) [scheme UTF8String];
    parts.scheme.length           = [scheme mulleUTF8StringLength];
@@ -278,17 +291,17 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
 
    parts.validated               = YES;
 
+   set = [NSURL mulleURLEscapedAllowedCharacterSet];
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                           allowedURICharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+                           allowedURICharacterSet:set]);
 }
 
 
 //
-- (instancetype) mulleInitWithEscapedURLPartsUTF8:(struct MulleEscapedURLPartsUTF8 *) parts
-                           allowedURICharacterSet:(NSCharacterSet *) allowedCharacterSet
+- (instancetype)
+   mulleInitWithEscapedURLPartsUTF8:(struct MulleEscapedURLPartsUTF8 *) parts
+             allowedURICharacterSet:(NSCharacterSet *) allowedCharacterSet
 {
-   NSCharacterSet   *lenientCharacterSet;
-
    // do this first before self can become nil
    if( parts->port >= 0x10000)
    {
@@ -504,6 +517,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    mulle_utf8_t                      c;
    struct mulle_utf8_data            *p;
    struct mulle_utf8_data            *q;
+   NSCharacterSet                    *set;
 
    // now do it all manually :(
    memset( &parts, 0, sizeof( parts));
@@ -541,8 +555,10 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
          p = q;
       }
    }
+
+   set = [NSURL mulleURLEscapedAllowedCharacterSet];
    return( [self mulleInitWithEscapedURLPartsUTF8:&parts
-                           allowedURICharacterSet:[NSURL mulleURLEscapedAllowedCharacterSet]]);
+                           allowedURICharacterSet:set]);
 }
 
 
@@ -804,6 +820,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    return( _port);
 }
 
+
 - (NSString *) user
 {
    return( [_escapedUser stringByRemovingPercentEncoding]);
@@ -979,15 +996,15 @@ static NSRange  getPathExtensionRange( NSString *self)
 {
    char  *s;
 
-   fprintf( stderr, "Scheme    : %p %s\n", _scheme,          (s = [_scheme cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "User      : %p %s\n", _escapedUser,     (s = [_escapedUser cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Password  : %p %s\n", _escapedPassword, (s = [_escapedPassword cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Host      : %p %s\n", _escapedHost,     (s = [_escapedHost cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Port      : %p %ld\n",_port,     [_port longValue]);
-   fprintf( stderr, "Path      : %p %s\n", _escapedPath,     (s = [_escapedPath cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Parameter : %p %s\n", _escapedParameterString,  (s = [_escapedParameterString cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Query     : %p %s\n", _escapedQuery,    (s = [_escapedQuery cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Fragment  : %p %s\n", _escapedFragment, (s = [_escapedFragment cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Scheme    : %p %s\n",  _scheme,          (s = [_scheme cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "User      : %p %s\n",  _escapedUser,     (s = [_escapedUser cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Password  : %p %s\n",  _escapedPassword, (s = [_escapedPassword cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Host      : %p %s\n",  _escapedHost,     (s = [_escapedHost cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Port      : %p %ld\n", _port,            [_port longValue]);
+   fprintf( stderr, "Path      : %p %s\n",  _escapedPath,     (s = [_escapedPath cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Parameter : %p %s\n",  _escapedParameterString,  (s = [_escapedParameterString cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Query     : %p %s\n",  _escapedQuery,    (s = [_escapedQuery cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment cStringDescription]) ? s : "*nil*");
 }
 #endif
 
