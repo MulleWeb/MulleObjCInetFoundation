@@ -161,10 +161,10 @@ struct MulleURLSchemeInitArguments
 - (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(mulle_utf8_t *) utf
                                                        length:(NSUInteger) length;
 
-// for civetweb
+// for civetweb (unused)
 - (instancetype) mulleInitWithSchemeUTF8Characters:(mulle_utf8_t *) scheme
                                              length:(NSUInteger) scheme_len
-                   resourceSpecifierUTF8Characters:(mulle_utf8_t *)uri
+                    resourceSpecifierUTF8Characters:(mulle_utf8_t *)uri
                                              length:(NSUInteger) uri_len;
 
 /*
