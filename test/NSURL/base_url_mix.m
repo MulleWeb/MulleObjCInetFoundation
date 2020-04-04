@@ -63,7 +63,10 @@ static void   test( NSString *baseURLString)
    run_test( baseURL, string);
 }
 
-
+/*
+  Since we don't have a HTTP parser without MulleObjCHTTPFoundation the baseURL
+  results look a little counterintuitive sometimes, but I think it is OK
+ */
 int   main(int argc, const char * argv[])
 {
    NSString   *string;
