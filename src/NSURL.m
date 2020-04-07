@@ -55,7 +55,7 @@ static id   assign_checked_utf8_to_ivar( id self,
                                          NSCharacterSet *characterSet)
 {
    NSUInteger   length;
-   
+
    if( ! self)
       return( self);
 
@@ -171,6 +171,9 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCStandardFoundation);
       characterSet = [NSMutableCharacterSet URLPathAllowedCharacterSet];
       [characterSet addCharactersInString:@"%"];
       NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPathAllowedCharacterSet, characterSet);
+
+      characterSet = [[characterSet mutableCopy] autorelease];
+      [characterSet addCharactersInString:@";"];
       NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedParameterStringAllowedCharacterSet, characterSet);
 
       characterSet = [NSMutableCharacterSet URLQueryAllowedCharacterSet];
