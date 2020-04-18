@@ -7,7 +7,7 @@
 //
 #import "import.h"
 
-#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0 << 20) | (17 << 8) | 0)
+#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0 << 20) | (17 << 8) | 1)
 
 #import "NSURL.h"
 #import "NSHost.h"

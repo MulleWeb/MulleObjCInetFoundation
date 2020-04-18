@@ -1,44 +1,43 @@
 # MulleObjCInetFoundation
 
-📠 Internet-related classes like NSHost and NSURL
-
-Adds **NSURL** and **NSHost** classes.
-Provides HTML escaping and unescaping for **NSString**.
-
-
-> This is part of the MulleFoundation and not MulleWeb because NSURL is used
-> (unfortunately) in the MulleObjCOSFoundation for various file operations.
+#### 📠 Internet-related classes like NSHost and NSURL for mulle-objc
 
 
 
 Build Status | Release Version
 -------------|-----------------------------------
-[![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleFoundation/MulleObjCInetFoundation.svg) [![Build Status](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleFoundation/MulleObjCInetFoundation)
+[![Build Status](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleWeb/MulleObjCInetFoundation.svg) [![Build Status](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation)
 
+
+## About
+
+The library adds **NSURL** and **NSHost** classes.
+
+
+## Add
+
+Use [mulle-sde](//github.com/mulle-sde) to add MulleObjCInetFoundation to your project:
+
+```
+mulle-sde dependency add --c --github MulleWeb MulleObjCInetFoundation
+```
 
 ## Install
 
-See [foundation-developer](//github.com//foundation-developer) for
+**MulleObjCInetFoundation** is part of **Foundation**, see
+[foundation-developer](//github.com//foundation-developer) for
 installation instructions.
 
 
-## License
+### Manual install
 
-Parts of this library:
+Use [mulle-sde](//github.com/mulle-sde) to build and install MulleObjCInetFoundation
+and all its dependencies:
 
-Copyright 2008 Google Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy
-of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+```
+mulle-sde install --objc --prefix /usr/local \
+   https://github.com/MulleWeb/MulleObjCInetFoundation/archive/latest.tar.gz
+```
 
 
 ## Authors
