@@ -1,3 +1,7 @@
+### 0.17.1
+
+* new mulle-sde project structure
+
 ## 0.17.0
 
 * added .validated flag to `struct MulleEscapedURLPartsUTF8` so superflous characterset checks can be avoided

@@ -36,6 +36,7 @@
 #import "NSURL.h"
 
 // other libraries of MulleObjCStandardFoundation
+#import "NSCharacterSet+MulleURL.h"
 
 // std-c and dependencies
 #include <string.h>
