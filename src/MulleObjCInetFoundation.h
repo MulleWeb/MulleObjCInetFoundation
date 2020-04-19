@@ -11,6 +11,8 @@
 
 #import "NSURL.h"
 #import "NSHost.h"
+#import "NSCharacterSet+MulleURL.h"
+#import "NSMutableCharacterSet+MulleURL.h"
 
 // html ? not necessarily the proper place here...
 
