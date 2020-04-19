@@ -1,5 +1,5 @@
 #ifdef __MULLE_OBJC__
-# import <MulleObjCStandardFoundation/MulleObjCStandardFoundation.h>
+# import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
 # include <mulle-testallocator/mulle-testallocator.h>
 #else
 # import <Foundation/Foundation.h>
