@@ -13,12 +13,17 @@
 #define _MulleObjCInetFoundation_include_h__
 
 // How to tweak the following mulle-url #include
-//    remove:          `mulle-sourcetree mark mulle-url no-header`
-//    rename:          `mulle-sourcetree mark mulle-url set include whatever.h`
-//    toggle #import:  `mulle-sourcetree mark mulle-url [no-]import`
-//    toggle public:   `mulle-sourcetree mark mulle-url [no-]public`
-//    toggle optional: `mulle-sourcetree mark mulle-url [no-]require`
-//    remove for os:   `mulle-sourcetree mark mulle-url no-os-<osname>`
-# include <mulle-url/mulle-url.h>   // mulle-url
+//    remove:             `mulle-sourcetree mark mulle-url no-header`
+//    rename:             `mulle-sde dependency|library set mulle-url include whatever.h`
+//    toggle #import:     `mulle-sourcetree mark mulle-url [no-]import`
+//    toggle localheader: `mulle-sourcetree mark mulle-url [no-]localheader`
+//    toggle public:      `mulle-sourcetree mark mulle-url [no-]public`
+//    toggle optional:    `mulle-sourcetree mark mulle-url [no-]require`
+//    remove for os:      `mulle-sourcetree mark mulle-url no-os-<osname>`
+# if defined( __has_include) && __has_include("mulle-url.h")
+#   include "mulle-url.h"   // mulle-url
+# else
+#   include <mulle-url/mulle-url.h>   // mulle-url
+# endif
 
 #endif
