@@ -46,23 +46,23 @@ extern NSString   *NSURLFileScheme;
 struct MulleEscapedURLPartsUTF8
 {
    // scheme
-   struct mulle_utf8_data   scheme;
+   struct mulle_utf8data   scheme;
 
    // authority
-   struct mulle_utf8_data   escaped_user;
-   struct mulle_utf8_data   escaped_password;
-   struct mulle_utf8_data   escaped_host;
+   struct mulle_utf8data   escaped_user;
+   struct mulle_utf8data   escaped_password;
+   struct mulle_utf8data   escaped_host;
    NSUInteger               port;
 
    // path
-   struct mulle_utf8_data   escaped_path;
-   struct mulle_utf8_data   escaped_parameter;
+   struct mulle_utf8data   escaped_path;
+   struct mulle_utf8data   escaped_parameter;
 
    // query
-   struct mulle_utf8_data   escaped_query;
+   struct mulle_utf8data   escaped_query;
 
    // fragment
-   struct mulle_utf8_data   escaped_fragment;
+   struct mulle_utf8data   escaped_fragment;
 
    int                      validated;  // set to YES, if you validated the contents yourself
 };
@@ -78,8 +78,8 @@ struct MulleURLSchemeHandler
 
 struct MulleURLSchemeInitArguments
 {
-   struct mulle_utf8_data   scheme;
-   struct mulle_utf8_data   uri;
+   struct mulle_utf8data   scheme;
+   struct mulle_utf8data   uri;
 };
 
 

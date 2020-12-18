@@ -31,6 +31,7 @@ src/MulleObjCLoader+MulleObjCInetFoundation.h
 src/NSCharacterSet+MulleURL.h
 src/NSHost.h
 src/NSMutableCharacterSet+MulleURL.h
+src/NSString+MulleURL.h
 src/NSURL.h
 src/import.h
 src/include.h

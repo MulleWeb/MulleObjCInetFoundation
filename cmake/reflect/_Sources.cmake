@@ -7,9 +7,9 @@ endif()
 
 set( SOURCES
 src/MulleObjCInetFoundation.m
-src/NSCharacterSet+MulleURL.m
 src/NSHost.m
 src/NSMutableCharacterSet+MulleURL.m
+src/NSString+MulleURL.m
 src/NSURL+File.m
 src/NSURL.m
 )

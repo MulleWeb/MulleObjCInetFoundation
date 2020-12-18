@@ -143,53 +143,49 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCStandardFoundation);
 // strings... If these turn out too big, then create custom ones...
 // in NSCharacterSet
 //
-+ (void) initialize
+
+static void  lazyInitializeCharsets( void)
 {
    NSMutableCharacterSet   *characterSet;
 
-   mulle_thread_mutex_init( &Self._lock);
-   if( ! Self._charsets)
-   {
-      Self._charsets = NSCreateMapTable( NSIntegerMapKeyCallBacks,
-                                         NSObjectMapValueCallBacks,
-                                         8);
+   Self._charsets = NSCreateMapTable( NSIntegerMapKeyCallBacks,
+                                      NSObjectMapValueCallBacks,
+                                      8);
 
-      characterSet = (id) [NSCharacterSet mulleURLSchemeAllowedCharacterSet];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLSchemeAllowedCharacterSet, characterSet);
+   characterSet = (id) [NSCharacterSet mulleURLSchemeAllowedCharacterSet];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLSchemeAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLUserAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedUserAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLUserAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedUserAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLPasswordAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPasswordAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLPasswordAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPasswordAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLHostAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedHostAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLHostAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedHostAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLPathAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPathAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLPathAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPathAllowedCharacterSet, characterSet);
 
-      characterSet = [[characterSet mutableCopy] autorelease];
-      [characterSet addCharactersInString:@";"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedParameterStringAllowedCharacterSet, characterSet);
+   characterSet = [[characterSet mutableCopy] autorelease];
+   [characterSet addCharactersInString:@";"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedParameterStringAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLQueryAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedQueryAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLQueryAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedQueryAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet URLFragmentAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedFragmentAllowedCharacterSet, characterSet);
+   characterSet = [NSMutableCharacterSet URLFragmentAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedFragmentAllowedCharacterSet, characterSet);
 
-      characterSet = [NSMutableCharacterSet mulleURLAllowedCharacterSet];
-      [characterSet addCharactersInString:@"%"];
-      NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedAllowedCharacterSet, characterSet);
-   }
-   mulle_thread_mutex_done( &Self._lock);
+   characterSet = [NSMutableCharacterSet mulleURLAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%"];
+   NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedAllowedCharacterSet, characterSet);
 }
 
 
@@ -200,7 +196,11 @@ static NSCharacterSet  *characterSetWithCode( enum URLCharacterSetCode code)
 
    mulle_thread_mutex_init( &Self._lock);
    {
+      if( ! Self._charsets)
+         lazyInitializeCharsets();
+
       characterSet = NSMapGet( Self._charsets, (void  *) code);
+      characterSet = [[characterSet retain] autorelease];
    }
    mulle_thread_mutex_done( &Self._lock);
 
@@ -228,18 +228,24 @@ static NSCharacterSet  *characterSetWithCode( enum URLCharacterSetCode code)
 
 
 
-static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
+static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme,
+                                                               struct MulleURLSchemeHandler *space)
 {
-   struct MulleURLSchemeHandler    *handler;
+   struct MulleURLSchemeHandler    *p_handler;
 
    scheme = [scheme lowercaseString];
    mulle_thread_mutex_init( &Self._lock);
    {
-      handler = NSMapGet( Self._schemes, scheme);
+      p_handler = NSMapGet( Self._schemes, scheme);
+      if( p_handler)
+      {
+         *space    = *p_handler;
+         p_handler = space;
+      }
    }
    mulle_thread_mutex_done( &Self._lock);
 
-   return( handler);
+   return( p_handler);
 }
 
 
@@ -413,13 +419,14 @@ static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme)
                                             length:(NSUInteger) uri_len
 {
    struct MulleURLSchemeHandler         *handler;
+   struct MulleURLSchemeHandler         space;
    struct MulleURLSchemeInitArguments   args;
 
    if( scheme)
    {
       _scheme = [[NSString alloc] mulleInitWithUTF8Characters:scheme
                                                        length:scheme_len];
-      handler = lookupHandlerForScheme( _scheme);
+      handler = lookupHandlerForScheme( _scheme, &space);
       if( handler)
       {
          args.scheme.characters = scheme;
@@ -479,7 +486,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
 - (instancetype) mulleInitWithUTF8Characters:(mulle_utf8_t *) utf8
                                       length:(NSUInteger) length
 {
-   struct mulle_utf8_data   scheme;
+   struct mulle_utf8data   scheme;
    mulle_utf8_t             *scheme_end;
 
    if( ! utf8)
@@ -519,8 +526,8 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    mulle_utf8_t                      *expect;
    size_t                            len;
    mulle_utf8_t                      c;
-   struct mulle_utf8_data            *p;
-   struct mulle_utf8_data            *q;
+   struct mulle_utf8data            *p;
+   struct mulle_utf8data            *q;
    NSCharacterSet                    *set;
 
    // now do it all manually :(
@@ -687,7 +694,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    //
    // not sure what to do if baseURL has a resourceSpecifier
    //
-   result = [NSMutableString string];
+   result = [NSMutableString object];
 
    if( _escapedPath)
       [result appendString:_escapedPath];
@@ -721,7 +728,7 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    NSMutableString   *result;
    NSString          *uri;
 
-   result = [NSMutableString string];
+   result = [NSMutableString object];
 
    if( _scheme)
    {
@@ -777,8 +784,9 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    SEL                            print;
    NSString                       *s;
    struct MulleURLSchemeHandler   *handler;
+   struct MulleURLSchemeHandler   space;
 
-   handler = lookupHandlerForScheme( _scheme);
+   handler = lookupHandlerForScheme( _scheme, &space);
    print   = handler ? handler->printURL : @selector( mulleGenericURLDescription);
    s       = [self performSelector:print];
    return( s);
@@ -796,8 +804,9 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
    SEL                            print;
    NSString                       *s;
    struct MulleURLSchemeHandler   *handler;
+   struct MulleURLSchemeHandler   space;
 
-   handler = lookupHandlerForScheme( _scheme);
+   handler = lookupHandlerForScheme( _scheme, &space);
    print   = handler ? handler->printResourceSpecifier
                      : @selector( mulleGenericResourceSpecifierDescription);
    s       = [self performSelector:print];
