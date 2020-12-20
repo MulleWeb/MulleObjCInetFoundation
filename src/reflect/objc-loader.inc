@@ -1,4 +1,5 @@
       { @selector( MulleObjCLoader), @selector( MulleObjCStandardFoundation) },      // 47a9beb6;MulleObjCLoader;ed704a42;MulleObjCStandardFoundation
+      { @selector( NSCharacterSet), @selector( MulleURL) },      // bb258d72;NSCharacterSet;cd22f47a;MulleURL
       { @selector( NSHost), MULLE_OBJC_NO_CATEGORYID },      // fe455508;NSHost;;
       { @selector( NSMutableCharacterSet), @selector( MulleURL) },      // a5cef654;NSMutableCharacterSet;cd22f47a;MulleURL
       { @selector( NSString), @selector( MulleURL) },      // 1994a171;NSString;cd22f47a;MulleURL

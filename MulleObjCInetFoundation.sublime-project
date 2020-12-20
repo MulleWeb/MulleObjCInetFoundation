@@ -1,28 +1,31 @@
 {
-   "folders":
-   [
-      {
-         "path": ".",
-         "file_exclude_patterns":
-         [
-            "*~",
-            "*~.*",
-            "*.chk",
-            ".DS_Store",
-            "._.DS_Store",
-            "*.sublime-workspace",
-            "tmp.*"
-         ],
-         "folder_exclude_patterns":
-         [
-            ".git",
-            ".mulle-*",
-            ".unison*",
-            "addiction",
-            "build",
-            "dependency",
-            "stash"
-         ]
-      }
-   ]
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"*~",
+				"*~.*",
+				"*.chk",
+				".DS_Store",
+				"._.DS_Store",
+				"*.sublime-workspace",
+				"tmp.*"
+			],
+			"folder_exclude_patterns":
+			[
+				".git",
+				".mulle-*",
+				".unison*",
+				"addiction",
+				"build",
+				"dependency",
+				"stash"
+			],
+			"path": "."
+		},
+		{
+			"path": "/home/src/srcO/MulleWeb/MulleObjCHTTPFoundation"
+		}
+	]
 }

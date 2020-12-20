@@ -12,7 +12,6 @@ static id   construct( SEL _cmd)
    return( [[[NSCharacterSet performSelector:_cmd] mutableCopy] autorelease]);
 }
 
-// move this to INetFoundtion
 
 + (instancetype) URLFragmentAllowedCharacterSet
 {
