@@ -1,0 +1,17 @@
+{
+   "name" : "MulleObjCInetFoundation",
+   "version" : "0.18.0",
+   "description" : "📠 Internet-related classes like NSHost and NSURL for mulle-objc",
+   "homepage" : "https://github.com/MulleWeb/MulleObjCInetFoundation",
+   "bugs" : "https://github.com/MulleWeb/MulleObjCInetFoundation/issues",
+   "keywords" : [],
+   "license" : "UNLICENSED",
+   "repository" : {
+      "type" : "git",
+      "url" : "MulleWeb/MulleObjCInetFoundation"
+   },
+   "dependencies" : {
+      "MulleObjCStandardFoundation" : "MulleFoundation/MulleObjCStandardFoundation",
+      "mulle-url" : "mulle-c/mulle-url"
+   }
+}
