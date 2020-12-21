@@ -1,3 +1,8 @@
+## 0.18.0
+
+* added PercentEscape methods
+
+
 ### 0.17.1
 
 * new mulle-sde project structure
