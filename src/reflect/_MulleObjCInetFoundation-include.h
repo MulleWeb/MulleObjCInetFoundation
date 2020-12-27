@@ -16,14 +16,9 @@
 //    remove:             `mulle-sourcetree mark mulle-url no-header`
 //    rename:             `mulle-sde dependency|library set mulle-url include whatever.h`
 //    toggle #import:     `mulle-sourcetree mark mulle-url [no-]import`
-//    toggle localheader: `mulle-sourcetree mark mulle-url [no-]localheader`
 //    toggle public:      `mulle-sourcetree mark mulle-url [no-]public`
 //    toggle optional:    `mulle-sourcetree mark mulle-url [no-]require`
 //    remove for os:      `mulle-sourcetree mark mulle-url no-os-<osname>`
-# if defined( __has_include) && __has_include("mulle-url.h")
-#   include "mulle-url.h"   // mulle-url
-# else
-#   include <mulle-url/mulle-url.h>   // mulle-url
-# endif
+# include <mulle-url/mulle-url.h>   // mulle-url
 
 #endif
