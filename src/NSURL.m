@@ -228,8 +228,9 @@ static NSCharacterSet  *characterSetWithCode( enum URLCharacterSetCode code)
 
 
 
-static struct MulleURLSchemeHandler  *lookupHandlerForScheme( NSString *scheme,
-                                                               struct MulleURLSchemeHandler *space)
+static struct MulleURLSchemeHandler  *
+   lookupHandlerForScheme( NSString *scheme,
+                           struct MulleURLSchemeHandler *space)
 {
    struct MulleURLSchemeHandler    *p_handler;
 
@@ -811,6 +812,36 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
                      : @selector( mulleGenericResourceSpecifierDescription);
    s       = [self performSelector:print];
    return( s);
+}
+
+
+//
+// we aren't doing just file URLs. We do assume that the separator is '/'
+//
+- (NSURL *) URLByAppendingPathComponent:(NSString *) component
+{
+   NSURL            *url;
+   NSString         *s;
+   NSCharacterSet   *set;
+
+   url = [[NSURL new] autorelease];
+
+   url->_scheme                 = [_scheme copy];
+   url->_escapedUser            = [_escapedUser copy];
+   url->_escapedPassword        = [_escapedPassword copy];
+   url->_escapedHost            = [_escapedHost copy];  // percent escaping in http seems not possible ?
+   url->_port                   = [_port copy];
+   url->_escapedParameterString = [_escapedParameterString copy];
+   url->_escapedQuery           = [_escapedQuery copy];
+   url->_escapedFragment        = [_escapedFragment copy];
+
+   s    = [[self path] mulleStringByAppendingComponent:component
+                               separatedByString:@"/"];
+   set  = [NSCharacterSet URLPathAllowedCharacterSet];
+
+   url->_escapedPath = [[s stringByAddingPercentEncodingWithAllowedCharacters:set] copy];
+
+   return( url);
 }
 
 

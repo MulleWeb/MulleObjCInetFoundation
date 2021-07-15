@@ -147,6 +147,9 @@ struct MulleURLSchemeInitArguments
 - (NSString *) stringValue;   // transform into a string
 - (NSString *) description;   // URL with percent escapes (calls stringValue)
 
+
+- (NSURL *) URLByAppendingPathComponent:(NSString *) component;
+
 // mulle extensions
 
 //
@@ -189,7 +192,7 @@ struct MulleURLSchemeInitArguments
 @end
 
 
-@interface NSURL (Legacy)
+@interface NSURL( Legacy)
 
 // legacy stuff, that probably doesn't do anything interesting anymore
 - (BOOL) isFileURL;

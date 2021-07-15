@@ -2,16 +2,25 @@
 
 #### 📠 Internet-related classes like NSHost and NSURL for mulle-objc
 
-
-
-Build Status | Release Version
--------------|-----------------------------------
-[![Build Status](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleWeb/MulleObjCInetFoundation.svg) [![Build Status](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation.svg?branch=release)](https://travis-ci.org/MulleWeb/MulleObjCInetFoundation)
-
-
-## About
-
 The library adds **NSURL** and **NSHost** classes.
+
+### You are here
+
+```
+   .-------------------------------------------------------------------.
+   | Foundation                                                        |
+   '-------------------------------------------------------------------'
+   .---------..--------..------------------------..---------..---------.
+   | HTTP    || InetOS || MulleFoundation        || Expat   || JSMN    |
+   '---------''--------''------------------------''---------''---------'
+   .=============..---------------------..-----------------------------.
+   | Inet        || OS                  || Plist                       |
+   '=============''---------------------''-----------------------------'
+   .---------..--------------------------------------------------------.
+   | Lock    || Standard                                               |
+   '---------''--------------------------------------------------------'
+
+```
 
 
 ## Add
