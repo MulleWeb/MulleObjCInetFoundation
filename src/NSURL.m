@@ -289,7 +289,7 @@ static struct MulleURLSchemeHandler  *
    set  = [NSCharacterSet URLHostAllowedCharacterSet];
    host = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
    set  = [NSCharacterSet URLPathAllowedCharacterSet];
-   path = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
+   path = [path stringByAddingPercentEncodingWithAllowedCharacters:set];
 
    parts.scheme.characters       = (mulle_utf8_t *) [scheme UTF8String];
    parts.scheme.length           = [scheme mulleUTF8StringLength];
@@ -1040,15 +1040,15 @@ static NSRange  getPathExtensionRange( NSString *self)
 {
    char  *s;
 
-   fprintf( stderr, "Scheme    : %p %s\n",  _scheme,          (s = [_scheme cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "User      : %p %s\n",  _escapedUser,     (s = [_escapedUser cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Password  : %p %s\n",  _escapedPassword, (s = [_escapedPassword cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Host      : %p %s\n",  _escapedHost,     (s = [_escapedHost cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Scheme    : %p %s\n",  _scheme,          (s = [_scheme UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "User      : %p %s\n",  _escapedUser,     (s = [_escapedUser UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Password  : %p %s\n",  _escapedPassword, (s = [_escapedPassword UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Host      : %p %s\n",  _escapedHost,     (s = [_escapedHost UTF8String]) ? s : "*nil*");
    fprintf( stderr, "Port      : %p %ld\n", _port,            [_port longValue]);
-   fprintf( stderr, "Path      : %p %s\n",  _escapedPath,     (s = [_escapedPath cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Parameter : %p %s\n",  _escapedParameterString,  (s = [_escapedParameterString cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Query     : %p %s\n",  _escapedQuery,    (s = [_escapedQuery cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Path      : %p %s\n",  _escapedPath,     (s = [_escapedPath UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Parameter : %p %s\n",  _escapedParameterString,  (s = [_escapedParameterString UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Query     : %p %s\n",  _escapedQuery,    (s = [_escapedQuery UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment UTF8String]) ? s : "*nil*");
 }
 #endif
 
