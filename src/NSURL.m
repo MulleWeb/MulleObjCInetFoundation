@@ -65,7 +65,7 @@ static id   assign_checked_utf8_to_ivar( id self,
    if( utf8_length == (NSUInteger) -1)
       utf8_length = mulle_utf8_strlen( utf8) + 1;
 
-   *ivar = [[NSString alloc] mulleInitWithUTF8Characters:utf8
+   *ivar = [[NSString alloc] mulleInitWithUTF8Characters:(char *) utf8
                                                   length:utf8_length];
    if( ! *ivar)
    {
@@ -289,7 +289,7 @@ static struct MulleURLSchemeHandler  *
    set  = [NSCharacterSet URLHostAllowedCharacterSet];
    host = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
    set  = [NSCharacterSet URLPathAllowedCharacterSet];
-   path = [host stringByAddingPercentEncodingWithAllowedCharacters:set];
+   path = [path stringByAddingPercentEncodingWithAllowedCharacters:set];
 
    parts.scheme.characters       = (mulle_utf8_t *) [scheme UTF8String];
    parts.scheme.length           = [scheme mulleUTF8StringLength];
@@ -414,9 +414,9 @@ static struct MulleURLSchemeHandler  *
 }
 
 
-- (instancetype) mulleInitWithSchemeUTF8Characters:(mulle_utf8_t *) scheme
+- (instancetype) mulleInitWithSchemeUTF8Characters:(char *) scheme
                                             length:(NSUInteger) scheme_len
-                   resourceSpecifierUTF8Characters:(mulle_utf8_t *) uri
+                   resourceSpecifierUTF8Characters:(char *) uri
                                             length:(NSUInteger) uri_len
 {
    struct MulleURLSchemeHandler         *handler;
@@ -464,10 +464,10 @@ static int   is_scheme_char( int c)
 
 
 // returns location of ':'
-static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
+static char   *parse_url_scheme( char *s, size_t length)
 {
-   mulle_utf8_t   *sentinel;
-   mulle_utf8_t   c;
+   char   *sentinel;
+   char   c;
 
    sentinel = &s[ length];
    while( s < sentinel)
@@ -484,11 +484,11 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
 }
 
 
-- (instancetype) mulleInitWithUTF8Characters:(mulle_utf8_t *) utf8
+- (instancetype) mulleInitWithUTF8Characters:(char *) utf8
                                       length:(NSUInteger) length
 {
-   struct mulle_utf8data   scheme;
-   mulle_utf8_t             *scheme_end;
+   struct MulleCharData   scheme;
+   char                    *scheme_end;
 
    if( ! utf8)
    {
@@ -518,17 +518,17 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
 }
 
 
-- (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(mulle_utf8_t *) utf
+- (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(char *) utf
                                                        length:(NSUInteger) length
 {
    struct MulleEscapedURLPartsUTF8   parts;
-   mulle_utf8_t                      *end;
-   mulle_utf8_t                      *tmp;
-   mulle_utf8_t                      *expect;
+   char                              *end;
+   char                              *tmp;
+   char                              *expect;
    size_t                            len;
-   mulle_utf8_t                      c;
-   struct mulle_utf8data            *p;
-   struct mulle_utf8data            *q;
+   int                               c;
+   struct MulleCharData             *p;
+   struct MulleCharData             *q;
    NSCharacterSet                    *set;
 
    // now do it all manually :(
@@ -543,17 +543,17 @@ static mulle_utf8_t   *parse_url_scheme( mulle_utf8_t *s, size_t length)
       p->length     = length;
 
       // path parameter query fragment
-      expect = (mulle_utf8_t *) ";?#";
+      expect = ";?#";
       for(;expect;)
       {
-         len = mulle_utf8_strncspn( p->characters, p->length, expect);
+         len = mulle_utf8_strncspn( (mulle_utf8_t *) p->characters, p->length, (mulle_utf8_t *) expect);
          if( len == p->length)
             break;  // done
 
          switch( p->characters[ len])
          {
-         case ';' : q = &parts.escaped_parameter; expect = (mulle_utf8_t *) "?#" ; break;
-         case '?' : q = &parts.escaped_query;     expect = (mulle_utf8_t *) "#"; break;
+         case ';' : q = &parts.escaped_parameter; expect = "?#" ; break;
+         case '?' : q = &parts.escaped_query;     expect = "#"; break;
          case '#' : q = &parts.escaped_fragment;  expect = NULL; break;
          }
 
@@ -1040,15 +1040,15 @@ static NSRange  getPathExtensionRange( NSString *self)
 {
    char  *s;
 
-   fprintf( stderr, "Scheme    : %p %s\n",  _scheme,          (s = [_scheme cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "User      : %p %s\n",  _escapedUser,     (s = [_escapedUser cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Password  : %p %s\n",  _escapedPassword, (s = [_escapedPassword cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Host      : %p %s\n",  _escapedHost,     (s = [_escapedHost cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Scheme    : %p %s\n",  _scheme,          (s = [_scheme UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "User      : %p %s\n",  _escapedUser,     (s = [_escapedUser UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Password  : %p %s\n",  _escapedPassword, (s = [_escapedPassword UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Host      : %p %s\n",  _escapedHost,     (s = [_escapedHost UTF8String]) ? s : "*nil*");
    fprintf( stderr, "Port      : %p %ld\n", _port,            [_port longValue]);
-   fprintf( stderr, "Path      : %p %s\n",  _escapedPath,     (s = [_escapedPath cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Parameter : %p %s\n",  _escapedParameterString,  (s = [_escapedParameterString cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Query     : %p %s\n",  _escapedQuery,    (s = [_escapedQuery cStringDescription]) ? s : "*nil*");
-   fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment cStringDescription]) ? s : "*nil*");
+   fprintf( stderr, "Path      : %p %s\n",  _escapedPath,     (s = [_escapedPath UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Parameter : %p %s\n",  _escapedParameterString,  (s = [_escapedParameterString UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Query     : %p %s\n",  _escapedQuery,    (s = [_escapedQuery UTF8String]) ? s : "*nil*");
+   fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment UTF8String]) ? s : "*nil*");
 }
 #endif
 
