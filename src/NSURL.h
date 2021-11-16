@@ -46,23 +46,23 @@ extern NSString   *NSURLFileScheme;
 struct MulleEscapedURLPartsUTF8
 {
    // scheme
-   struct mulle_utf8data   scheme;
+   struct MulleCharData   scheme;
 
    // authority
-   struct mulle_utf8data   escaped_user;
-   struct mulle_utf8data   escaped_password;
-   struct mulle_utf8data   escaped_host;
+   struct MulleCharData   escaped_user;
+   struct MulleCharData   escaped_password;
+   struct MulleCharData   escaped_host;
    NSUInteger               port;
 
    // path
-   struct mulle_utf8data   escaped_path;
-   struct mulle_utf8data   escaped_parameter;
+   struct MulleCharData   escaped_path;
+   struct MulleCharData   escaped_parameter;
 
    // query
-   struct mulle_utf8data   escaped_query;
+   struct MulleCharData   escaped_query;
 
    // fragment
-   struct mulle_utf8data   escaped_fragment;
+   struct MulleCharData   escaped_fragment;
 
    int                      validated;  // set to YES, if you validated the contents yourself
 };
@@ -78,8 +78,8 @@ struct MulleURLSchemeHandler
 
 struct MulleURLSchemeInitArguments
 {
-   struct mulle_utf8data   scheme;
-   struct mulle_utf8data   uri;
+   struct MulleCharData   scheme;
+   struct MulleCharData   uri;
 };
 
 
@@ -122,7 +122,7 @@ struct MulleURLSchemeInitArguments
 - (instancetype) initWithString:(NSString *) URLString;
 - (instancetype) initWithString:(NSString *) URLString
                   relativeToURL:(NSURL *) baseURL;
-- (id) mulleInitWithUTF8Characters:(mulle_utf8_t *) c_string
+- (id) mulleInitWithUTF8Characters:(char *) c_string
                             length:(NSUInteger) c_string_len;
 
 // This method automatically uses percent encoding to escape the path
@@ -161,13 +161,13 @@ struct MulleURLSchemeInitArguments
 
 // parses just path;parameterString?query#fragment
 // incoming strings must be percent escaped already
-- (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(mulle_utf8_t *) utf
+- (instancetype) mulleInitResourceSpecifierWithUTF8Characters:(char *) utf
                                                        length:(NSUInteger) length;
 
 // for civetweb (unused)
-- (instancetype) mulleInitWithSchemeUTF8Characters:(mulle_utf8_t *) scheme
+- (instancetype) mulleInitWithSchemeUTF8Characters:(char *) scheme
                                              length:(NSUInteger) scheme_len
-                    resourceSpecifierUTF8Characters:(mulle_utf8_t *)uri
+                    resourceSpecifierUTF8Characters:(char *)uri
                                              length:(NSUInteger) uri_len;
 
 /*
