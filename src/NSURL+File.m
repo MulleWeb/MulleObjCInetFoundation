@@ -72,8 +72,8 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
 - (instancetype) mulleInitFileURLWithArguments:(struct MulleURLSchemeInitArguments *) args
 {
    struct MulleEscapedURLPartsUTF8   parts;
-   mulle_utf8_t                      *tmp;
-   mulle_utf8_t                      *utf;
+   char                              *tmp;
+   char                              *utf;
    NSUInteger                        length;
 
    memset( &parts, 0, sizeof( parts));
@@ -87,11 +87,11 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
       utf    += 2;
       length -= 2;
 
-      tmp = mulle_utf8_strnchr( utf, length, '/');
+      tmp = (char *) mulle_utf8_strnchr( (mulle_utf8_t *) utf, length, '/');
       if( tmp == utf)
       {
          // needs this for '///'
-         parts.escaped_host.characters     = (mulle_utf8_t *) "";
+         parts.escaped_host.characters = "";
          // parts._escaped_host.length = 0;
       }
       else

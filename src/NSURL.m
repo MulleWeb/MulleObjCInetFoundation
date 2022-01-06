@@ -51,7 +51,7 @@
 
 static id   assign_checked_utf8_to_ivar( id self,
                                          NSString **ivar,
-                                         mulle_utf8_t *utf8,
+                                         char *utf8,
                                          NSUInteger utf8_length,
                                          NSCharacterSet *characterSet)
 {
@@ -63,9 +63,9 @@ static id   assign_checked_utf8_to_ivar( id self,
    assert( utf8);
 
    if( utf8_length == (NSUInteger) -1)
-      utf8_length = mulle_utf8_strlen( utf8) + 1;
+      utf8_length = mulle_utf8_strlen( (mulle_utf8_t *) utf8) + 1;
 
-   *ivar = [[NSString alloc] mulleInitWithUTF8Characters:(char *) utf8
+   *ivar = [[NSString alloc] mulleInitWithUTF8Characters:utf8
                                                   length:utf8_length];
    if( ! *ivar)
    {
@@ -291,13 +291,13 @@ static struct MulleURLSchemeHandler  *
    set  = [NSCharacterSet URLPathAllowedCharacterSet];
    path = [path stringByAddingPercentEncodingWithAllowedCharacters:set];
 
-   parts.scheme.characters       = (mulle_utf8_t *) [scheme UTF8String];
+   parts.scheme.characters       = [scheme UTF8String];
    parts.scheme.length           = [scheme mulleUTF8StringLength];
 
-   parts.escaped_host.characters = (mulle_utf8_t *) [host UTF8String];
+   parts.escaped_host.characters = [host UTF8String];
    parts.escaped_host.length     = [host mulleUTF8StringLength];
 
-   parts.escaped_path.characters = (mulle_utf8_t *) [path UTF8String];
+   parts.escaped_path.characters = [path UTF8String];
    parts.escaped_path.length     = [path mulleUTF8StringLength];
 
    parts.validated               = YES;
@@ -577,12 +577,12 @@ static char   *parse_url_scheme( char *s, size_t length)
 - (instancetype) initWithString:(NSString *) s
 {
    NSUInteger     length;
-   mulle_utf8_t   *utf8;
+   char           *utf8;
 
    NSParameterAssert( ! s || [s isKindOfClass:[NSString class]]);
 
    length = [s mulleUTF8StringLength];
-   utf8   = (mulle_utf8_t *) [s UTF8String];
+   utf8   = [s UTF8String];
 
    return( [self mulleInitWithUTF8Characters:utf8
                                       length:length]);

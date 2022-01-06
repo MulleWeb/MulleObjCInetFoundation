@@ -7,12 +7,13 @@
 //
 #import "import.h"
 
-#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0 << 20) | (18 << 8) | 1)
+#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0 << 20) | (18 << 8) | 2)
 
 #import "_MulleObjCInetFoundation-export.h"
 
-// export nothing with _MulleObjC
-#if MULLE_OBJC_STANDARD_FOUNDATION_VERSION < ((0 << 20) | (17 << 8) | 0)
-# error "MulleObjCStandardFoundation is too old"
-#endif
 
+#ifdef __has_include
+# if __has_include( "_MulleObjCInetFoundation-versioncheck.h")
+#  include "_MulleObjCInetFoundation-versioncheck.h"
+# endif
+#endif

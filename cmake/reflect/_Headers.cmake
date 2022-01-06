@@ -60,5 +60,6 @@ src/NSHost.h
 src/NSMutableCharacterSet+MulleURL.h
 src/NSString+MulleURL.h
 src/NSURL.h
+src/reflect/_MulleObjCInetFoundation-versioncheck.h
 )
 
