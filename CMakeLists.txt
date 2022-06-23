@@ -1,7 +1,6 @@
-cmake_minimum_required( VERSION 3.1)
+cmake_minimum_required( VERSION 3.15)
 
 project( MulleObjCInetFoundation C)
-add_definitions( -DMULLE_OBJC_INET_FOUNDATION_EXTERN_GLOBAL=extern)
 
 
 
