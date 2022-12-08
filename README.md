@@ -14,7 +14,7 @@ The library adds **NSURL** and **NSHost** classes.
 
 Use [mulle-sde](//github.com/mulle-sde) to add MulleObjCInetFoundation to your project:
 
-```
+``` sh
 mulle-sde dependency add --c --github MulleWeb MulleObjCInetFoundation
 ```
 
@@ -30,7 +30,7 @@ installation instructions.
 Use [mulle-sde](//github.com/mulle-sde) to build and install MulleObjCInetFoundation
 and all its dependencies:
 
-```
+``` sh
 mulle-sde install --objc --prefix /usr/local \
    https://github.com/MulleWeb/MulleObjCInetFoundation/archive/latest.tar.gz
 ```

@@ -15,6 +15,7 @@ endif()
 # Generated from sourcetree: 2231393C-0D62-44C6-B581-C3AF1DF78321;MulleObjCStandardFoundation;no-singlephase;
 # Disable with : `mulle-sourcetree mark MulleObjCStandardFoundation no-link`
 # Disable for this platform: `mulle-sourcetree mark MulleObjCStandardFoundation no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark MulleObjCStandardFoundation no-cmake-sdk-<name>`
 #
 if( NOT MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY)
    find_library( MULLE_OBJC_STANDARD_FOUNDATION_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjCStandardFoundation${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjCStandardFoundation${CMAKE_STATIC_LIBRARY_SUFFIX} MulleObjCStandardFoundation NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -95,6 +96,7 @@ endif()
 # Generated from sourcetree: FB3E9A11-7EE9-41BF-90A8-47E7BCCB5FF2;mulle-url;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-url no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-url no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark mulle-url no-cmake-sdk-<name>`
 #
 if( NOT MULLE_URL_LIBRARY)
    find_library( MULLE_URL_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-url${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-url${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-url NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -125,6 +127,7 @@ endif()
 # Generated from sourcetree: DEAC2607-B1D1-43A7-928D-926A2ADB1AF3;MulleObjCLockFoundation;no-singlephase;
 # Disable with : `mulle-sourcetree mark MulleObjCLockFoundation no-link`
 # Disable for this platform: `mulle-sourcetree mark MulleObjCLockFoundation no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark MulleObjCLockFoundation no-cmake-sdk-<name>`
 #
 if( NOT MULLE_OBJC_LOCK_FOUNDATION_LIBRARY)
    find_library( MULLE_OBJC_LOCK_FOUNDATION_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjCLockFoundation${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjCLockFoundation${CMAKE_STATIC_LIBRARY_SUFFIX} MulleObjCLockFoundation NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
