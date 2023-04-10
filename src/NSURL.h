@@ -52,7 +52,7 @@ struct MulleEscapedURLPartsUTF8
    struct MulleCharData   escaped_user;
    struct MulleCharData   escaped_password;
    struct MulleCharData   escaped_host;
-   NSUInteger               port;
+   NSUInteger             port;
 
    // path
    struct MulleCharData   escaped_path;
@@ -64,7 +64,7 @@ struct MulleEscapedURLPartsUTF8
    // fragment
    struct MulleCharData   escaped_fragment;
 
-   int                      validated;  // set to YES, if you validated the contents yourself
+   int                    validated;  // set to YES, if you validated the contents yourself
 };
 
 
