@@ -14,16 +14,6 @@
 #ifndef _mulle_objc_inet_foundation_include_h__
 #define _mulle_objc_inet_foundation_include_h__
 
-// You can tweak the following #include with these commands.
-// (Use FB3E9A11-7EE9-41BF-90A8-47E7BCCB5FF2 instead of mulle-url if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-url no-header`
-//    rename:              `mulle-sde dependency|library set mulle-url include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-url <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-url [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-url [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-url [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-url no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-url/mulle-url.h>   // mulle-url
+/* no headers */
 
 #endif
