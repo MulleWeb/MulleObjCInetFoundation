@@ -63,7 +63,7 @@ static id   assign_checked_utf8_to_ivar( id self,
    assert( utf8);
 
    if( utf8_length == (NSUInteger) -1)
-      utf8_length = mulle_utf8_strlen( (mulle_utf8_t *) utf8) + 1;
+      utf8_length = mulle_utf8_strlen( utf8) + 1;
 
    *ivar = [[NSString alloc] mulleInitWithUTF8Characters:utf8
                                                   length:utf8_length];
@@ -522,11 +522,8 @@ static char   *parse_url_scheme( char *s, size_t length)
                                                        length:(NSUInteger) length
 {
    struct MulleEscapedURLPartsUTF8   parts;
-   char                              *end;
-   char                              *tmp;
    char                              *expect;
    size_t                            len;
-   int                               c;
    struct MulleCharData             *p;
    struct MulleCharData             *q;
    NSCharacterSet                    *set;
@@ -546,7 +543,7 @@ static char   *parse_url_scheme( char *s, size_t length)
       expect = ";?#";
       for(;expect;)
       {
-         len = mulle_utf8_strncspn( (mulle_utf8_t *) p->characters, p->length, (mulle_utf8_t *) expect);
+         len = mulle_utf8_strncspn( p->characters, p->length, expect);
          if( len == p->length)
             break;  // done
 
@@ -592,10 +589,8 @@ static char   *parse_url_scheme( char *s, size_t length)
 - (instancetype) initWithString:(NSString *) string
                   relativeToURL:(NSURL *) baseURL
 {
-   NSURL             *url;
-   NSString          *path;
-   NSMutableArray    *components;
-   NSArray           *array;
+   NSArray          *array;
+   NSMutableArray   *components;
 
    NSParameterAssert( ! baseURL || [baseURL isKindOfClass:[NSURL class]]);
 

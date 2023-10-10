@@ -87,7 +87,7 @@ MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCValueFoundation);
       utf    += 2;
       length -= 2;
 
-      tmp = (char *) mulle_utf8_strnchr( (mulle_utf8_t *) utf, length, '/');
+      tmp = (char *) mulle_utf8_strnchr( utf, length, '/');
       if( tmp == utf)
       {
          // needs this for '///'
