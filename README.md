@@ -46,10 +46,16 @@ mulle-sde install --prefix /usr/local \
 
 ### Manual Installation
 
-Install the [requirements](#Overview) and then install
-**MulleObjCInetFoundation**
-with [cmake](https://cmake.org). Here `/usr/local` is chosen as the install
-prefix:
+Install the requirements:
+
+| Requirements                                 | Description
+|----------------------------------------------|-----------------------
+| [MulleFoundationBase](https://github.com/MulleFoundation/MulleFoundationBase)             | 🛸 MulleFoundationBase does something
+| [mulle-objc-list](https://github.com/mulle-objc/mulle-objc-list)             | 📒 Lists mulle-objc runtime information contained in executables.
+
+Download the latest [tar](https://github.com/MulleWeb/MulleObjCInetFoundation/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/MulleWeb/MulleObjCInetFoundation/archive/refs/tags/latest.zip) archive and unpack it.
+
+Install **MulleObjCInetFoundation** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh
 cmake -B build \
