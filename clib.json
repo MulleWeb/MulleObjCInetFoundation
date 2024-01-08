@@ -1,0 +1,41 @@
+{
+   "name" : "MulleObjCInetFoundation",
+   "version" : "0.18.6",
+   "description" : "📠 Internet-related classes like NSHost and NSURL for mulle-objc",
+   "keywords" : [],
+   "license" : "BSD-3-Clause",
+   "repo" : "MulleWeb/MulleObjCInetFoundation",
+   "src" : [
+      "src/generic/import-private.h",
+      "src/generic/import.h",
+      "src/generic/include-private.h",
+      "src/generic/include.h",
+      "src/MulleObjCInetFoundation.h",
+      "src/MulleObjCInetFoundation.m",
+      "src/MulleObjCLoader+MulleObjCInetFoundation.h",
+      "src/MulleObjCLoader+MulleObjCInetFoundation.m",
+      "src/NSCharacterSet+MulleURL.h",
+      "src/NSCharacterSet+MulleURL.m",
+      "src/NSHost.h",
+      "src/NSHost.m",
+      "src/NSMutableCharacterSet+MulleURL.h",
+      "src/NSMutableCharacterSet+MulleURL.m",
+      "src/NSString+MulleURL.h",
+      "src/NSString+MulleURL.m",
+      "src/NSURL+File.m",
+      "src/NSURL.h",
+      "src/NSURL.m",
+      "src/reflect/objc-loader.inc",
+      "src/reflect/_MulleObjCInetFoundation-export.h",
+      "src/reflect/_MulleObjCInetFoundation-import-private.h",
+      "src/reflect/_MulleObjCInetFoundation-import.h",
+      "src/reflect/_MulleObjCInetFoundation-include-private.h",
+      "src/reflect/_MulleObjCInetFoundation-include.h",
+      "src/reflect/_MulleObjCInetFoundation-provide.h",
+      "src/reflect/_MulleObjCInetFoundation-versioncheck.h"
+   ],
+   "dependencies" : {
+      "MulleFoundation/MulleFoundationBase": "*",
+      "mulle-objc/mulle-objc-list": "*"
+   }
+}

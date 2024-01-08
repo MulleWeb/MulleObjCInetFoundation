@@ -2,12 +2,12 @@
 
 #### 📠 Internet-related classes like NSHost and NSURL for mulle-objc
 
-
 The library adds **NSURL** and **NSHost** classes.
+
 
 | Release Version                                       | Release Notes
 |-------------------------------------------------------|--------------
-| ![Mulle kybernetiK tag](https://img.shields.io/github/tag//MulleObjCInetFoundation.svg?branch=release) [![Build Status](https://github.com//MulleObjCInetFoundation/workflows/CI/badge.svg?branch=release)](//github.com//MulleObjCInetFoundation/actions)| [RELEASENOTES](RELEASENOTES.md) |
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleWeb/MulleObjCInetFoundation.svg?branch=release) [![Build Status](https://github.com/MulleWeb/MulleObjCInetFoundation/workflows/CI/badge.svg?branch=release)](//github.com/MulleWeb/MulleObjCInetFoundation/actions) | [RELEASENOTES](RELEASENOTES.md) |
 
 
 
@@ -16,13 +16,9 @@ The library adds **NSURL** and **NSHost** classes.
 
 
 
-## Overview
+### You are here
+
 ![Overview](overview.dot.svg)
-
-| Requirement                                  | Description
-|----------------------------------------------|-----------------------
-| [MulleFoundationBase](https://github.com/MulleFoundation/MulleFoundationBase)             | 🛸 MulleFoundationBase does something
-| [mulle-objc-list](https://github.com/mulle-objc/mulle-objc-list)             | 📒 Lists mulle-objc runtime information contained in executables.
 
 
 ## Add
@@ -66,7 +62,7 @@ cmake --build build --config Release &&
 cmake --install build --config Release
 ```
 
-## Platforms and Compilers
+### Platforms and Compilers
 
 All platforms and compilers supported by
 [mulle-c11](//github.com/mulle-c/mulle-c11).
@@ -74,5 +70,5 @@ All platforms and compilers supported by
 
 ## Author
 
-[Nat!](https://mulle-kybernetik.com/weblog) for Mulle kybernetiK
+[Nat!](https://mulle-kybernetik.com/weblog) for Mulle kybernetiK  
 
