@@ -7,7 +7,7 @@ The library adds **NSURL** and **NSHost** classes.
 
 | Release Version                                       | Release Notes
 |-------------------------------------------------------|--------------
-| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleWeb/MulleObjCInetFoundation.svg?branch=release) [![Build Status](https://github.com/MulleWeb/MulleObjCInetFoundation/workflows/CI/badge.svg?branch=release)](//github.com/MulleWeb/MulleObjCInetFoundation/actions) | [RELEASENOTES](RELEASENOTES.md) |
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/MulleWeb/MulleObjCInetFoundation.svg) [![Build Status](https://github.com/MulleWeb/MulleObjCInetFoundation/workflows/CI/badge.svg)](//github.com/MulleWeb/MulleObjCInetFoundation/actions) | [RELEASENOTES](RELEASENOTES.md) |
 
 
 
