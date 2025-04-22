@@ -9,7 +9,14 @@
 
 static id   construct( SEL _cmd)
 {
-   return( [[[NSCharacterSet performSelector:_cmd] mutableCopy] autorelease]);
+   NSCharacterSet          *tmp;
+   NSData                  *data;
+   NSMutableCharacterSet   *set;
+
+   tmp  = [NSCharacterSet performSelector:_cmd];
+   data = [tmp bitmapRepresentation];
+   set  = [[[NSMutableCharacterSet alloc] initWithBitmapRepresentation:data] autorelease];
+   return( set);
 }
 
 
