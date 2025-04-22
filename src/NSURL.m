@@ -171,8 +171,8 @@ static void  lazyInitializeCharsets( void)
    [characterSet addCharactersInString:@"%"];
    NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedPathAllowedCharacterSet, characterSet);
 
-   characterSet = [[characterSet mutableCopy] autorelease];
-   [characterSet addCharactersInString:@";"];
+   characterSet = [NSMutableCharacterSet URLPathAllowedCharacterSet];
+   [characterSet addCharactersInString:@"%;"];
    NSMapInsertKnownAbsent( Self._charsets, (void *) URLEscapedParameterStringAllowedCharacterSet, characterSet);
 
    characterSet = [NSMutableCharacterSet URLQueryAllowedCharacterSet];
