@@ -54,8 +54,8 @@ src/generic/include.h
 # contents selected with patternfile ??-header--public-headers
 #
 set( PUBLIC_HEADERS
+src/MulleObjCDeps+MulleObjCInetFoundation.h
 src/MulleObjCInetFoundation.h
-src/MulleObjCLoader+MulleObjCInetFoundation.h
 src/NSCharacterSet+MulleURL.h
 src/NSHost.h
 src/NSMutableCharacterSet+MulleURL.h

@@ -40,8 +40,6 @@
 @class NSNumber;
 @class NSArray;
 
-extern NSString   *NSURLFileScheme;
-
 
 struct MulleEscapedURLPartsUTF8
 {
