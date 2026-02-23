@@ -12,6 +12,10 @@
 # import <Foundation/Foundation.h>
 #endif
 
+@interface NSObject( MulleDump)
+- (void) mulleDump;
+@end
+
 @interface NSObject( CStringDescription)
 @end
 
@@ -51,6 +55,9 @@ static NSURL  *test( NSURL *baseURL, NSString *string)
 {
    NSURL   *url;
    char    *s;
+   char    *s2;
+   char    *s3;
+   char    *s4;
 
    url = [NSURL URLWithString:string
                 relativeToURL:baseURL];
@@ -59,9 +66,9 @@ static NSURL  *test( NSURL *baseURL, NSString *string)
 #endif
 
    printf( "String: %s baseURL: %s -> <%s> %s\n", (s = [string UTF8String]) ? s : "*nil*",
-                                                  (s = [baseURL UTF8String]) ? s : "*nil*",
-                                                  (s = [NSStringFromClass([ url class]) UTF8String]) ? s : "*nil*",
-                                                  (s = [url UTF8String]) ? s : "*nil*");
+                                                  (s2 = [baseURL UTF8String]) ? s2 : "*nil*",
+                                                  (s3 = [NSStringFromClass([ url class]) UTF8String]) ? s3 : "*nil*",
+                                                  (s4 = [url UTF8String]) ? s4 : "*nil*");
    if( url)
       print_url( url);
    printf( "\n");

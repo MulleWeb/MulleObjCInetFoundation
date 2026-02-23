@@ -1,19 +1,7 @@
 #
 #
 #
-export PREFERRED_STARTUP_LIBRARY="MulleObjCStandardFoundation-startup"
-
-
-#
-#
-#
-export MULLE_SOURCETREE_RESOLVE_TAG="NO"
-
-
-#
-#
-#
-export MULLE_CRAFT_PLATFORMS="${MULLE_UNAME}"
+export MULLE_CRAFT_PLATFORMS="${MULLE_UNAME}:windows"
 
 
 #

@@ -1,4 +1,5 @@
 # MulleObjCInetFoundation Library Documentation for AI
+<!-- Keywords: networking, url -->
 
 ## 1. Introduction & Purpose
 

@@ -1,15 +1,15 @@
 //
-//  MulleObjCLoader+InetFoundation.m
+//  MulleObjCDeps+InetFoundation.m
 //  MulleObjCInetFoundation
 //
 //  Created by Nat! on 11.05.17.
 //
 //
 
-#import "MulleObjCLoader+MulleObjCInetFoundation.h"
+#import "MulleObjCDeps+MulleObjCInetFoundation.h"
 
 
-@implementation MulleObjCLoader( MulleObjCInetFoundation)
+@implementation MulleObjCDeps( MulleObjCInetFoundation)
 
 + (struct _mulle_objc_dependency *) dependencies
 {
@@ -17,7 +17,7 @@
    static struct _mulle_objc_dependency   dependencies[] =
    {
 
-#include "objc-loader.inc"
+#include "objc-deps.inc"
 
       { MULLE_OBJC_NO_CLASSID, MULLE_OBJC_NO_CATEGORYID }
    };
