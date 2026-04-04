@@ -1,320 +1,180 @@
 # MulleObjCInetFoundation Library Documentation for AI
-<!-- Keywords: networking, url -->
+<!-- Keywords: NSURL, NSHost, URL, percent-escape, charset, scheme, ObjectiveC -->
 
 ## 1. Introduction & Purpose
 
-**MulleObjCInetFoundation** provides Internet and networking utilities for Objective-C, including URL encoding/decoding, hostname resolution support, and network address manipulation. It extends Foundation classes (NSURL, NSString, NSHost) with practical networking functionality commonly needed in web and network applications.
-
-This library is particularly useful for:
-- URL parameter encoding and decoding
-- Percent-encoding for URLs and email addresses
-- Host name and IP address handling
-- Building and parsing network addresses
-- Cross-platform URL utilities
-- Internet protocol address manipulation
+- MulleObjCInetFoundation provides Internet-related Objective‑C classes for mulle-objc: primarily NSURL and NSHost plus URL-related character-set helpers and scheme handler support.
+- Solves URL parsing, percent-escape handling, and exposes convenient accessors (scheme, user, host, port, path, query, fragment, resourceSpecifier).
+- Key features: percent-escaped internal storage, UTF8-based init helpers, pluggable scheme handlers, and URL character-set helpers for encoding/decoding.
+- Relationship: builds on Mulle Foundation pieces (MulleFoundationBase) and integrates with the mulle-objc ecosystem.
 
 ## 2. Key Concepts & Design Philosophy
 
-- **URL Standard Compliance**: RFC 3986 percent-encoding for URLs
-- **Character Set Management**: NSCharacterSet for flexible encoding rules
-- **Network Abstraction**: Unified interface for DNS and address handling
-- **Lazy Resolution**: Optional resolver library support for DNS lookups
-- **String Escaping**: Bidirectional encoding/decoding for URL safety
-- **Thread-Safe**: Proper locking for concurrent access to shared resources
+- URLs are stored internally as percent-escaped strings for correctness; accessors return unescaped NSStrings unless documented otherwise.
+- Emphasis on validation and conservative parsing: malformed input can produce nil objects.
+- Not intended as a thin string wrapper for file I/O; NSFileManager is recommended for file operations.
+- Extensible scheme handlers: callers can register handlers for custom schemes (init/print hooks).
+- Character-set oriented API: provides reusable character sets for allowed URL fragments, hosts, queries, etc., to centralize percent-encoding logic.
 
 ## 3. Core API & Data Structures
 
-### NSString Category: `NSString (MulleURL)`
+### 3.1. [NSURL.h]
 
-#### Percent Encoding
+#### struct MulleEscapedURLPartsUTF8
+- Purpose: hold percent-escaped UTF8 parts for low-level initialization.
+- Key Fields: scheme, escaped_user, escaped_password, escaped_host, port, escaped_path, escaped_parameter, escaped_query, escaped_fragment, validated.
+- Usage: passed into `-mulleInitWithEscapedURLPartsUTF8:allowedURICharacterSet:` when parts are already escaped.
 
-- `- (NSString *) stringByAddingPercentEscapesUsingEncoding:(NSStringEncoding)encoding` → `NSString *`
-  - Percent-encode string for safe URL inclusion
-  - **encoding**: Character encoding to use (typically NSUTF8StringEncoding)
-  - Converts reserved and unsafe characters to %XX format
-  - Returns autoreleased NSString
-  - **Example**: `"hello world"` → `"hello%20world"`
-  - **Use case**: Encoding query parameters, form data, path components
+#### struct MulleURLSchemeHandler
+- Purpose: Register custom scheme behavior.
+- Key Fields: SEL initURL; SEL printURL; SEL printResourceSpecifier;
+- Use: pass handler plus scheme string to `+mulleRegisterHandler:forScheme:`.
 
-- `- (NSString *) stringByReplacingPercentEscapesUsingEncoding:(NSStringEncoding)encoding` → `NSString *`
-  - Decode percent-encoded string back to original
-  - Reverses `stringByAddingPercentEscapesUsingEncoding:`
-  - Returns autoreleased NSString
-  - Returns nil on malformed percent sequences
-  - **Example**: `"hello%20world"` → `"hello world"`
-  - **Use case**: Processing URL parameters, form submissions
+#### NSURL (class)
+- Purpose: Represent and parse URL strings; provide component accessors.
+- Lifecycle Functions:
+  - +URLWithString:(NSString *)s
+  - -initWithString:(NSString *)URLString
+  - +URLWithString:relativeToURL:
+  - -mulleInitWithUTF8Characters:length:
+  - -mulleInitWithEscapedURLPartsUTF8:allowedURICharacterSet:
+  - -mulleInitResourceSpecifierWithUTF8Characters:length:
+- Core Operations / Accessors:
+  - -scheme -> NSString * (unescaped)
+  - -user -> NSString *
+  - -password -> NSString *
+  - -host -> NSString *
+  - -port -> NSNumber *
+  - -path -> NSString *
+  - -parameterString -> NSString *
+  - -query -> NSString *
+  - -fragment -> NSString *
+  - -resourceSpecifier -> NSString *
+  - -stringValue / -description -> NSString * (description includes percent escapes)
+  - -URLByAppendingPathComponent:(NSString *)component
+- Scheme handler support:
+  - +mulleRegisterHandler:forScheme:
+  - Default helpers: -mulleGenericResourceSpecifierDescription, -mulleGenericURLDescription, -mulleIsAbsolutePath, -mulleEscapedResourceSpecifier
+- Legacy API (present but not preferred): -isFileURL, -standardizedURL, -absoluteString, -relativePath, -pathComponents, -lastPathComponent, -pathExtension, etc.
 
-### NSCharacterSet Category: `NSCharacterSet (MulleURL)`
+### 3.2. [NSHost.h]
+- Purpose: Represent host information (names and addresses); lookup is lazy and needs a resolver library to be useful.
+- Key Fields: internal lock; properties: names (NSArray, copy), addresses (NSArray, copy), _IP6 (BOOL), _isCurrentHost (BOOL).
+- Lifecycle:
+  - -initWithNames:count:addresses:count:
+  - +hostWithName:, +hostWithAddress:
+- Operations:
+  - -isEqualToHost:
+  - -name
+  - -address
+  - +currentHost and -localizedName (future extension)
 
-#### URL Character Set Queries
+### 3.3. [NSString+MulleURL.h]
+- Helpers for percent-encoding/decoding:
+  - -stringByAddingPercentEscapesUsingEncoding:
+  - -stringByReplacingPercentEscapesUsingEncoding:
+- Purpose: compatibility helpers commonly used before constructing NSURL objects.
 
-- `+ (NSCharacterSet *) mulleURLAllowedCharacterSet` → `NSCharacterSet *`
-  - Returns characters allowed in URLs (unreserved + reserved)
-  - Per RFC 3986
+### 3.4. [NSCharacterSet+MulleURL.h] and NSMutableCharacterSet category
+- Purpose: Provide standard character sets used in URL encoding/decoding.
+- Key Class Methods:
+  - +URLFragmentAllowedCharacterSet
+  - +URLHostAllowedCharacterSet
+  - +URLPasswordAllowedCharacterSet
+  - +URLPathAllowedCharacterSet
+  - +URLQueryAllowedCharacterSet
+  - +URLUserAllowedCharacterSet
+  - +mulleURLAllowedCharacterSet
+  - +mulleURLSchemeAllowedCharacterSet
+  - +mulleNonPercentEscapeCharacterSet
+- Use: pass the appropriate allowed character set into low-level init APIs that accept allowedURICharacterSet.
 
-- `+ (NSCharacterSet *) mulleURLUnreservedCharacterSet` → `NSCharacterSet *`
-  - Unreserved characters: A-Z, a-z, 0-9, `-`, `.`, `_`, `~`
-  - Safe for any position in URL
-
-- `+ (NSCharacterSet *) mulleURLReservedCharacterSet` → `NSCharacterSet *`
-  - Reserved characters: `:`, `/`, `?`, `#`, `[`, `]`, `@`, `!`, `$`, `&`, `'`, `(`, `)`, `*`, `+`, `,`, `;`, `=`
-  - Meaning varies by URL context
-
-- `+ (NSCharacterSet *) mulleURLQueryCharacterSet` → `NSCharacterSet *`
-  - Safe characters in query string context
-  - Excludes `&` and `=` to preserve query structure
-
-- `+ (NSCharacterSet *) mulleURLPathComponentCharacterSet` → `NSCharacterSet *`
-  - Safe characters in path component
-  - Excludes `/` to preserve path structure
-
-- `+ (NSCharacterSet *) mulleURLSchemeCharacterSet` → `NSCharacterSet *`
-  - Valid characters for URL scheme
-  - Alphanumeric plus `+`, `-`, `.`
-
-#### Custom Encoding Character Sets
-
-- `+ (NSCharacterSet *) mulleURLCharacterSetExcludingCharacterSet:(NSCharacterSet *)excluded` → `NSCharacterSet *`
-  - Create allowed character set excluding specific characters
-  - **excluded**: Characters to remove from allowed set
-  - **Use case**: Custom encoding for specific contexts
-
-### NSHost Class: `NSHost`
-
-#### Properties
-
-- `@property (nonatomic, readonly, copy) NSArray *names`
-  - Primary and alternate host names
-  - First entry is canonical name
-
-- `@property (nonatomic, readonly, copy) NSArray *addresses`
-  - IP addresses (v4 and/or v6) associated with host
-  - Format: dotted decimal for IPv4, colon-hex for IPv6
-
-- `@property (nonatomic, readonly) BOOL _IP6`
-  - YES if any address is IPv6
-
-- `@property (nonatomic, readonly) BOOL _isCurrentHost`
-  - YES if this is the local host
-
-#### Creation
-
-- `- (id) initWithNames:(NSString **)names count:(NSUInteger)count addresses:(NSString **)addresses count:(NSUInteger)nAddresses`
-  - Create host with names and addresses
-  - **names**: Array of host names
-  - **addresses**: Array of address strings
-  - For advanced custom host objects
-
-- `+ (instancetype) hostWithName:(NSString *)name` → `NSHost *`
-  - Create host by name
-  - Attempts DNS lookup if resolver available
-  - Returns autoreleased NSHost
-  - May return partially initialized host if resolver unavailable
-
-- `+ (instancetype) hostWithAddress:(NSString *)address` → `NSHost *`
-  - Create host by IP address
-  - Reverse DNS lookup if resolver available
-  - Returns autoreleased NSHost
-
-#### Current Host (Future API)
-
-- `+ (instancetype) currentHost` → `NSHost *`
-  - Get the local host object
-
-- `- (NSString *) localizedName` → `NSString *`
-  - Get display name for this host
-
-#### Comparison
-
-- `- (BOOL) isEqualToHost:(NSHost *)other`
-  - Compare two host objects for equality
-
-#### Accessors
-
-- `- (NSString *) name` → `NSString *`
-  - Primary host name (first in names array)
-
-- `- (NSString *) address` → `NSString *`
-  - Primary address (first in addresses array)
+### 3.5. Other headers
+- MulleObjCInetFoundation.h: version macro and exports; include this to import the public surface.
+- Misc reflect/generic headers: build-time include wrappers (not part of runtime API surface).
 
 ## 4. Performance Characteristics
 
-- **Percent Encoding**: O(n) where n = string length; typical: 1-10 MB/s
-- **DNS Lookup**: O(1) + network time; blocking operation, typically 10-1000ms
-- **Character Set Queries**: O(1) constant time (cached)
-- **Host Comparison**: O(n) where n = number of names/addresses
-- **Memory**: Minimal, character sets are shared/cached
-- **Concurrency**: Thread-safe for reads; DNS operations may be blocking
+- NSURL objects are "fat": parsing creates separate NSStrings for many components (scheme/user/password/host/path/etc.). Memory > thin NSString-based representations.
+- Typical operations (accessors) are effectively O(1) after parse; parsing on creation is O(n) in URL length.
+- URLByAppendingPathComponent performs a copy and simple concatenation (O(len(component))).
+- Thread-safety:
+  - Instances are not documented as fully thread-safe; NSHost uses internal locking for lazy behavior but general safety requires external synchronization for concurrent mutation.
+- Trade-offs: correctness and convenience (unescaped accessors) favored over minimal memory footprint.
 
 ## 5. AI Usage Recommendations & Patterns
 
-### Pattern 1: Encode Query Parameters
-Build safe query strings:
-
-```objc
-NSString *userName = @"john@example.com";
-NSString *encoded = [userName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-NSString *queryURL = [NSString stringWithFormat:@"http://api.example.com?user=%@", encoded];
-// Result: "http://api.example.com?user=john%40example.com"
-```
-
-### Pattern 2: Decode URL Parameters
-Process received URLs:
-
-```objc
-NSString *encodedParam = @"hello%20world%21";
-NSString *decoded = [encodedParam stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-// Result: "hello world!"
-```
-
-### Pattern 3: DNS Resolution
-Lookup hostname:
-
-```objc
-NSHost *host = [NSHost hostWithName:@"example.com"];
-if (host) {
-    NSLog(@"Addresses: %@", [host addresses]);
-    NSLog(@"Primary: %@", [host address]);
-}
-```
-
-### Pattern 4: Reverse DNS Lookup
-Get hostname from IP:
-
-```objc
-NSHost *host = [NSHost hostWithAddress:@"192.0.2.1"];
-if (host) {
-    NSLog(@"Names: %@", [host names]);
-    NSLog(@"Primary: %@", [host name]);
-}
-```
-
-### Pattern 5: Query String Building
-Safe parameter concatenation:
-
-```objc
-NSString *search = @"mulle objc & c";
-NSString *safe = [search stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-NSString *url = [NSString stringWithFormat:@"http://api.example.com/search?q=%@", safe];
-```
-
-### Common Pitfalls
-- **Encoding twice**: Only encode once; double-encoding creates invalid URLs
-- **Wrong encoding**: Always use NSUTF8StringEncoding for web content
-- **Assuming & is safe**: `&` separates parameters; must be encoded in values
-- **DNS blocking**: NSHost DNS lookups block thread; cache results
-- **Missing resolver**: DNS features work only if optional resolver library linked
+- Best Practices:
+  - Prefer +URLWithString: / -initWithString: for typical use. Provide already percent-escaped strings to low-level initializers when available.
+  - Use NSCharacterSet+MulleURL helpers to determine which characters need escaping.
+  - Use -description or -stringValue for a percent-escaped textual URL representation.
+  - For file access, prefer NSFileManager over NSURL-specific file methods in this library.
+- Common Pitfalls:
+  - Passing unescaped strings to methods that expect escaped input can yield nil or malformed results.
+  - Do not assume baseURL merging semantics like Apple's NSURL; this implementation may create a single new URL rather than marry base/self.
+  - Be aware that accessors return unescaped NSStrings; if you need escaped forms call -description or use escaped-specific APIs.
+- Idiomatic usage in mulle-sde environment: construct URLs with +URLWithString:, validate result, then inspect components. Use mulleInit... UTF8 variants when interoperating with C/UTF8 buffers.
 
 ## 6. Integration Examples
 
-### Example 1: Safe URL Building
-```objc
-- (NSURL *) buildSearchURL:(NSString *)query limit:(NSUInteger)limit {
-    NSString *encodedQuery = [query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    NSString *urlString = [NSString stringWithFormat:
-        @"http://api.example.com/search?q=%@&limit=%lu",
-        encodedQuery, limit];
-    return [NSURL URLWithString:urlString];
+### Example 1: Creating and Inspecting a URL
+
+```c
+// Objective-C, compile as a simple test program
+#import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
+
+static void
+print_url( NSURL  *url)
+{
+   char  *s;
+
+   printf( "Scheme: %s\n", (s = [[url scheme] UTF8String]) ? s : "*nil*");
+   printf( "Host  : %s\n", (s = [[url host] UTF8String]) ? s : "*nil*");
+   printf( "Path  : %s\n", (s = [[url path] UTF8String]) ? s : "*nil*");
+}
+
+int
+main( void)
+{
+   NSURL   *url;
+
+   url = [NSURL URLWithString:@"https://user:pass@host:8080/path?query#frag"];
+   if( url)
+   {
+      print_url( url);
+      printf( "Full: %s\n", [[url description] UTF8String]);
+   }
+   return( 0);
 }
 ```
 
-### Example 2: Parse Form Data
-```objc
-- (NSDictionary *) parseFormData:(NSString *)formData {
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    
-    for (NSString *pair in [formData componentsSeparatedByString:@"&"]) {
-        NSArray *parts = [pair componentsSeparatedByString:@"="];
-        if ([parts count] == 2) {
-            NSString *key = [parts[0] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            NSString *value = [parts[1] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            if (key) result[key] = value ?: @"";
-        }
-    }
-    
-    return result;
-}
-```
+### Example 2: Using Allowed Character Sets
 
-### Example 3: Email Encoding in URL
-```objc
-NSString *email = @"user+tag@example.com";
-NSString *subject = @"Test & Demo";
+```c
+#import <MulleObjCInetFoundation/MulleObjCInetFoundation.h>
 
-NSString *encodedEmail = [email stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-NSString *encodedSubject = [subject stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+int
+main( void)
+{
+   NSCharacterSet  *set;
+   NSString        *escaped;
 
-NSString *mailtoURL = [NSString stringWithFormat:@"mailto:%@?subject=%@",
-    encodedEmail, encodedSubject];
-```
-
-### Example 4: Host Information Display
-```objc
-@interface HostInfo : NSObject
-+ (NSString *) describeHost:(NSString *)hostname;
-@end
-
-@implementation HostInfo
-+ (NSString *) describeHost:(NSString *)hostname {
-    NSHost *host = [NSHost hostWithName:hostname];
-    if (!host) return [NSString stringWithFormat:@"Host not found: %@", hostname];
-    
-    NSString *names = [[host names] componentsJoinedByString:@", "];
-    NSString *addrs = [[host addresses] componentsJoinedByString:@", "];
-    
-    return [NSString stringWithFormat:
-        @"Host: %@\nNames: %@\nAddresses: %@",
-        hostname, names, addrs];
-}
-@end
-```
-
-### Example 5: Query Parameter Encoding
-```objc
-- (NSString *) buildQueryString:(NSDictionary *)params {
-    NSMutableArray *pairs = [NSMutableArray array];
-    
-    for (NSString *key in params) {
-        NSString *value = [params[key] description];
-        NSString *encodedKey = [key stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-        NSString *encodedValue = [value stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-        [pairs addObject:[NSString stringWithFormat:@"%@=%@", encodedKey, encodedValue]];
-    }
-    
-    return [pairs componentsJoinedByString:@"&"];
-}
-```
-
-### Example 6: URL Path Encoding
-```objc
-- (NSURL *) buildFileURL:(NSString *)filename directory:(NSString *)dir {
-    // Encode each component separately to preserve /
-    NSString *encodedDir = [dir stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    NSString *encodedFile = [filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    
-    NSString *urlString = [NSString stringWithFormat:@"http://files.example.com/%@/%@",
-        encodedDir, encodedFile];
-    
-    return [NSURL URLWithString:urlString];
+   set     = [NSCharacterSet URLPathAllowedCharacterSet];
+   escaped = [[@"/foo bar/baz" stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
+                 stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+   // Use escaped /path in low-level init when appropriate
+   return( 0);
 }
 ```
 
 ## 7. Dependencies
 
-- **MulleFoundation** - NSString, NSArray, NSCharacterSet, NSHost base classes
-- **Optional**: Resolver library for DNS functionality (libc-ares or similar)
-- **mulle-objc** (runtime) - Objective-C runtime
-- Standard C library
+- MulleFoundationBase (amalgamated Mulle Foundation pieces)
+- mulle-objc-list (runtime introspection helpers)
+- mulle-c11 (platform C support)
 
-## 8. Standards & References
 
-- **RFC 3986**: Uniform Resource Identifier (URI) syntax
-- **RFC 1738**: Uniform Resource Locators (URLs)
-- **RFC 2396**: URI Generic Syntax
-- **WHATWG URL Standard**: Living URL specification
+---
 
-## 9. Version Information
-
-MulleObjCInetFoundation version macro: `MULLE_OBJC_INET_FOUNDATION_VERSION`
-- Format: `(major << 20) | (minor << 8) | patch`
-- Current: 0.18.8
+Notes for AIs:
+- Primary API surfaces are in src/NSURL.h and src/NSHost.h; tests under test/NSURL demonstrate common usage. Use the character-set helpers when performing percent-encoding. When in doubt, parse a URL using +URLWithString: and inspect components via provided accessors.
