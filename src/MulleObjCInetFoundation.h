@@ -7,7 +7,7 @@
 //
 #import "import.h"
 
-#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0UL << 20) | (18 << 8) | 9)
+#define MULLE_OBJC_INET_FOUNDATION_VERSION  ((0UL << 20) | (19 << 8) | 0)
 
 #import "_MulleObjCInetFoundation-export.h"
 

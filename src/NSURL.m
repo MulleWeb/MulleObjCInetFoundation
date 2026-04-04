@@ -111,6 +111,8 @@ enum URLCharacterSetCode
 
 @implementation NSURL
 
+@dependency MulleObjCDeps( MulleObjCStandardFoundation);
+
 static struct
 {
    mulle_thread_mutex_t   _lock;
@@ -119,8 +121,7 @@ static struct
 } Self;
 
 
-// for +initialize
-MULLE_OBJC_DEPENDS_ON_LIBRARY( MulleObjCStandardFoundation);
+
 
 + (void) load
 {
