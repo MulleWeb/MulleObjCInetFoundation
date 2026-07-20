@@ -1,9 +1,3 @@
-## 0.19.0
+### 0.19.1
 
-
-
-
-
-
-
-* removed MulleObjCDeps mapping from the reflection dependency table to avoid an unnecessary injected dependency during reflection/resolution
+Various small improvements
