@@ -40,7 +40,7 @@
 @end
 
 
-@interface NSHost( Future)
+@interface NSHost( Future) < MulleObjCFuture>
 
 + (instancetype) currentHost;
 - (NSString *) localizedName;
