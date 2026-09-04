@@ -1,6 +1,6 @@
 //
-//  NSURL+HTTP.m
-//  MulleObjCStandardFoundation
+//  NSURL+File.m
+//  MulleObjCInetFoundation
 //
 //  Copyright (c) 2020 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2020 Codeon GmbH.

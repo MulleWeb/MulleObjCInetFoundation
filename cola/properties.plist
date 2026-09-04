@@ -6,7 +6,7 @@
       name="MulleObjCInetFoundation";
       user="MulleWeb";
       repo="MulleObjCInetFoundation";
-      version="0.19.1";
+      version="0.19.2";
       homepage="https://github.com/MulleWeb/MulleObjCInetFoundation";
       license="BSD-3-Clause";
    };

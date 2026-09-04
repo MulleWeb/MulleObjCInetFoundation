@@ -16,6 +16,11 @@ The library adds **NSURL** and **NSHost** classes.
 
 
 
+## Documentation & Guides
+
+* [API Summary](asset/dox/api/toc)
+
+
 ### You are here
 
 ![Overview](overview.dot.svg)
