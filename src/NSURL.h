@@ -1,8 +1,8 @@
 //
 //  NSURL.h
-//  MulleObjCStandardFoundation
+//  MulleObjCInetFoundation
 //
-//  Copyright (c) 2011 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2011 Codeon GmbH.
 //  All rights reserved.
 //
