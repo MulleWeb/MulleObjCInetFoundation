@@ -30,15 +30,24 @@
 - Key Fields: SEL initURL; SEL printURL; SEL printResourceSpecifier;
 - Use: pass handler plus scheme string to `+mulleRegisterHandler:forScheme:`.
 
+#### struct MulleURLSchemeInitArguments
+- Purpose: argument bundle handed to a scheme handler's `initURL` selector.
+- Key Fields: scheme (`struct MulleCharData`); uri (`struct MulleCharData`).
+- Use: e.g. consumed by the file-scheme handler (`mulleInitFileURLWithArguments:`) in NSURL+File.m.
+
 #### NSURL (class)
 - Purpose: Represent and parse URL strings; provide component accessors.
 - Lifecycle Functions:
   - +URLWithString:(NSString *)s
-  - -initWithString:(NSString *)URLString
-  - +URLWithString:relativeToURL:
-  - -mulleInitWithUTF8Characters:length:
-  - -mulleInitWithEscapedURLPartsUTF8:allowedURICharacterSet:
-  - -mulleInitResourceSpecifierWithUTF8Characters:length:
+   - -initWithString:(NSString *)URLString
+   - +URLWithString:relativeToURL:
+   - -initWithString:relativeToURL:
+   - -initWithScheme:host:path:  (percent-encodes host/path automatically)
+   - -mulleInitWithUTF8Characters:length:
+   - -mulleInitWithEscapedURLPartsUTF8:allowedURICharacterSet:
+   - -mulleInitResourceSpecifierWithUTF8Characters:length:
+   - -mulleInitWithSchemeUTF8Characters:length:resourceSpecifierUTF8Characters:length: (for civetweb)
+   - +mulleURLEscapedAllowedCharacterSet (non-restrictive charset for ResourceSpecifier)
 - Core Operations / Accessors:
   - -scheme -> NSString * (unescaped)
   - -user -> NSString *
