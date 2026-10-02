@@ -81,6 +81,10 @@ struct MulleURLSchemeInitArguments
 };
 
 
+MULLE_OBJC_INET_FOUNDATION_EXTERN_GLOBAL
+NSString   *NSURLFileScheme;
+
+
 // Dont't use NSURL for file access! Use NSFileManager!
 // NSURL is not an efficient storage mechanism for URLS, use NSString!
 //
@@ -185,6 +189,22 @@ struct MulleURLSchemeInitArguments
 
 // non-restrictive charset for ResourceSpecifier
 + (NSCharacterSet *) mulleURLEscapedAllowedCharacterSet;
+
+
+// filesystem (file:) URL support
+
+- (char *) fileSystemRepresentation;
+- (BOOL) getFileSystemRepresentation:(char *) buf
+                           maxLength:(NSUInteger) max;
+
+- (instancetype) initFileURLWithPath:(NSString *) path;
++ (instancetype) fileURLWithPath:(NSString *) path;
+- (instancetype) initFileURLWithPath:(NSString *) path
+                         isDirectory:(BOOL) isDirectory;
++ (instancetype) fileURLWithPath:(NSString *) path
+                     isDirectory:(BOOL) isDirectory;
+
++ (instancetype) fileURLWithPathComponents:(NSArray *) components;
 
 
 @end

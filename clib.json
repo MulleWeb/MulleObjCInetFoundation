@@ -1,6 +1,6 @@
 {
    "name" : "MulleObjCInetFoundation",
-   "version" : "0.19.2",
+   "version" : "0.20.0",
    "description" : "📠 Internet-related classes like NSHost and NSURL for mulle-objc",
    "keywords" : [],
    "license" : "BSD-3-Clause",
@@ -17,6 +17,8 @@
       "src/MulleObjCInetFoundation.m",
       "src/NSCharacterSet+MulleURL.h",
       "src/NSCharacterSet+MulleURL.m",
+      "src/NSData+NSURL.h",
+      "src/NSData+NSURL.m",
       "src/NSHost.h",
       "src/NSHost.m",
       "src/NSMutableCharacterSet+MulleURL.h",
@@ -36,7 +38,7 @@
       "src/reflect/_MulleObjCInetFoundation-versioncheck.h"
    ],
    "dependencies" : {
-      "MulleFoundation/MulleFoundationBase": "*",
-      "mulle-objc/mulle-objc-list": "*"
+      "MulleFoundation/MulleFoundation": "*",
+      "mulle-objc/mulle-objc-tools": "*"
    }
 }

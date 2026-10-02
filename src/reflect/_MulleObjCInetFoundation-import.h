@@ -3,28 +3,28 @@
  *   `mulle-sde reflect` and any edits will be lost.
  *   Suppress generation of this file with:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_IMPORT_FILE DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_IMPORT_FILE DISABLE
  *
  *   To not let mulle-sourcetree-to-c generate any header files:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_RUN DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_RUN DISABLE
  *
  */
 
 // To remove the following dependency (headers and library) completely:
-//   `mulle-sde dependency remove MulleFoundationBase`
-// (Use 7984A0FB-70B0-4F6B-A8D4-39E18FFA434D instead of MulleFoundationBase, if there are duplicate entries)
+//   `mulle-sde dependency remove MulleFoundation`
+// (Use A20D85A2-642C-441C-B06B-B6625E2CC302 instead of MulleFoundation, if there are duplicate entries)
 //
 // You can tweak the following #import with these commands:
-//    remove #import      : `mulle-sde dependency mark MulleFoundationBase no-header`
-//    rename              : `mulle-sde dependency|library set MulleFoundationBase include whatever.h`
-//    reorder             : `mulle-sde dependency move MulleFoundationBase <up|down>`
-//    toggle objc         : `mulle-sde dependency mark MulleFoundationBase [no-]import`
-//    toggle public       : `mulle-sde dependency mark MulleFoundationBase [no-]public`
-//    toggle optional     : `mulle-sde dependency mark MulleFoundationBase [no-]require`
-//    remove for platform : `mulle-sde dependency mark MulleFoundationBase no-platform-<uname>`
+//    remove #import      : `mulle-sde dependency mark MulleFoundation no-header`
+//    rename              : `mulle-sde dependency|library set MulleFoundation include whatever.h`
+//    reorder             : `mulle-sde dependency move MulleFoundation <up|down>`
+//    toggle objc         : `mulle-sde dependency mark MulleFoundation [no-]import`
+//    toggle public       : `mulle-sde dependency mark MulleFoundation [no-]public`
+//    toggle optional     : `mulle-sde dependency mark MulleFoundation [no-]require`
+//    remove for platform : `mulle-sde dependency mark MulleFoundation no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
-#import <MulleFoundationBase/MulleFoundationBase.h>   // MulleFoundationBase
+#import <MulleFoundation/MulleFoundation.h>   // MulleFoundation
 
 #ifdef __has_include
 # if __has_include( "_MulleObjCInetFoundation-include.h")

@@ -311,6 +311,21 @@
                        withAddresses:array]);
 }
 
+
++ (instancetype) currentHost
+{
+   NSString   *names[ 1];
+   NSString   *addresses[ 2];
+
+   names[ 0]     = @"localhost";
+   addresses[ 0] = @"127.0.0.1";
+   addresses[ 1] = @"::1";
+   return( [[[NSHost alloc] initWithNames:names
+                                    count:1
+                                addresses:addresses
+                                    count:2] autorelease]);
+}
+
 @end
 
 

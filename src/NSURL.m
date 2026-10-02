@@ -109,6 +109,9 @@ enum URLCharacterSetCode
 };
 
 
+NSString   *NSURLFileScheme = @"file";
+
+
 @implementation NSURL
 
 @dependency MulleObjCDeps( MulleObjCStandardFoundation);
@@ -1047,5 +1050,64 @@ static NSRange  getPathExtensionRange( NSString *self)
    fprintf( stderr, "Fragment  : %p %s\n",  _escapedFragment, (s = [_escapedFragment UTF8String]) ? s : "*nil*");
 }
 #endif
+
+
+#pragma mark - filesystem (file:) URLs
+
+- (char *) fileSystemRepresentation
+{
+   return( [[self path] fileSystemRepresentation]);
+}
+
+
+- (BOOL) getFileSystemRepresentation:(char *) buf
+                           maxLength:(NSUInteger) max
+{
+   return( [[self path] getFileSystemRepresentation:buf
+                                          maxLength:max]);
+}
+
+
+//
+// We don't convenience, if path is a directory and append '/'.
+// It's not really foolproof either:
+//  touch foo/a ;  initFile... ; rm foo/a ; mkdir foo/a
+//
+- (instancetype) initFileURLWithPath:(NSString *) path
+{
+   return( [self initWithScheme:NSURLFileScheme
+                           host:nil
+                           path:path]);
+}
+
+
++ (instancetype) fileURLWithPath:(NSString *) path
+{
+   return( [[[self alloc] initFileURLWithPath:path] autorelease]);
+}
+
+
+- (instancetype) initFileURLWithPath:(NSString *) path
+                         isDirectory:(BOOL) isDirectory
+{
+   MULLE_C_UNUSED( isDirectory );
+   return( [self initWithScheme:NSURLFileScheme
+                           host:nil
+                           path:path]);
+}
+
+
++ (instancetype) fileURLWithPath:(NSString *) path
+                     isDirectory:(BOOL) isDirectory
+{
+   return( [[[self alloc] initFileURLWithPath:path
+                                  isDirectory:isDirectory] autorelease]);
+}
+
+
++ (instancetype) fileURLWithPathComponents:(NSArray *) components
+{
+   return( [self fileURLWithPath:[NSString pathWithComponents:components]]);
+}
 
 @end

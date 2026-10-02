@@ -57,6 +57,7 @@ set( PUBLIC_HEADERS
 src/MulleObjCDeps+MulleObjCInetFoundation.h
 src/MulleObjCInetFoundation.h
 src/NSCharacterSet+MulleURL.h
+src/NSData+NSURL.h
 src/NSHost.h
 src/NSMutableCharacterSet+MulleURL.h
 src/NSString+MulleURL.h
