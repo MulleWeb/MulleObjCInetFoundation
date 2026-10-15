@@ -1,6 +1,7 @@
 ## 0.20.0
 
 
+
 * Document NSURL file URL support methods (-fileSystemRepresentation, -getFileSystemRepresentation:maxLength:, +fileURLWithPath:, +fileURLWithPath:isDirectory:, +fileURLWithPathComponents:)
 * Document the NSData(NSURL) category for reading and writing data via URLs
 * Document the NSURLFileScheme global and correct the dependency name to MulleFoundation
